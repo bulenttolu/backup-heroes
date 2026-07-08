@@ -235,6 +235,29 @@
   .agacSatir .boyut { margin-left: auto; font-size: 11.5px; color: var(--soluk); font-variant-numeric: tabular-nums; }
   .kayarAlt { display: flex; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--cizgi); }
 
+  /* Processing Settings modal penceresi */
+  .modalOrtu { position: absolute; inset: 0; background: #1f242855; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 8; }
+  .modalOrtu.acik { opacity: 1; pointer-events: auto; }
+  .modal {
+    position: absolute; top: 36px; left: 50%; transform: translateX(-50%) scale(.97);
+    width: 700px; max-width: 94%; background: var(--beyaz); border-radius: 12px;
+    box-shadow: 0 24px 60px #0f2b1a44; z-index: 9; opacity: 0; pointer-events: none;
+    transition: opacity .2s, transform .2s;
+  }
+  .modal.acik { opacity: 1; pointer-events: auto; transform: translateX(-50%) scale(1); }
+  .modalBaslik { display: flex; align-items: center; padding: 16px 22px 10px; }
+  .modalBaslik h4 { font-size: 16.5px; font-weight: 600; }
+  .modalBaslik .kapatX { margin-left: auto; cursor: pointer; background: none; border: none; font-size: 16px; color: var(--soluk); }
+  .sekmeler { display: flex; gap: 2px; padding: 0 22px; border-bottom: 1px solid var(--cizgi); }
+  .sekme { cursor: pointer; background: none; border: none; font-size: 14px; font-weight: 600; color: var(--metin); padding: 9px 12px; border-bottom: 2.5px solid transparent; }
+  .sekme.aktifS { color: var(--vg); border-bottom-color: var(--vg); }
+  .modalIc { padding: 16px 22px; max-height: 390px; overflow-y: auto; }
+  .modalAlt { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 22px 18px; }
+  .radyoDuz { display: flex; align-items: flex-start; gap: 9px; margin: 0 0 10px; cursor: pointer; font-size: 13.5px; max-width: 640px; }
+  .radyoDuz input { margin-top: 2px; accent-color: var(--vg); flex-shrink: 0; }
+  .sayiKucuk { width: 64px; background: var(--beyaz); border: 1px solid #b8bdbb; border-radius: 8px; padding: 6px 8px; font-size: 13.5px; font-family: inherit; }
+  .griMetin { color: #b0b6b2 !important; }
+
   /* ================= EĞİTMEN PANELİ ================= */
   .egitmen {
     margin-top: 16px; border-radius: 13px; padding: 15px 18px;
@@ -406,6 +429,55 @@
                 <button class="btnDuz" onclick="panelKapat()">Cancel</button>
               </div>
             </aside>
+
+            <!-- Processing Settings modal -->
+            <div class="modalOrtu" id="psOrtu"></div>
+            <div class="modal" id="psModal" role="dialog" aria-label="Processing Settings">
+              <div class="modalBaslik"><h4>SQL-PROD-01 - Processing Settings</h4><button class="kapatX" onclick="psKapat(false)">✕</button></div>
+              <div class="sekmeler" id="psSekmeler">
+                <button class="sekme aktifS" data-sekme="general">General</button>
+                <button class="sekme" data-sekme="sql">SQL</button>
+                <button class="sekme" data-sekme="oracle">Oracle</button>
+                <button class="sekme" data-sekme="postgresql">PostgreSQL</button>
+                <button class="sekme" data-sekme="exclusions">Exclusions</button>
+                <button class="sekme" data-sekme="scripts">Scripts</button>
+              </div>
+              <div class="modalIc" id="psGeneral">
+                <div class="bolumSerit" style="max-width:none; margin-top:0">Applications</div>
+                <p class="grinot" style="margin-bottom:12px; max-width:640px">Application-aware processing detects and prepares applications for consistent backup using application-specific methods, and configures the OS to perform required application restore steps upon first boot.</p>
+                <label class="radyoDuz"><input type="radio" name="psApp" value="require" checked> <span>Require successful processing (recommended)</span></label>
+                <label class="radyoDuz"><input type="radio" name="psApp" value="ignore"> <span>Try application processing, but ignore failures</span></label>
+                <label class="radyoDuz"><input type="radio" name="psApp" value="disable"> <span>Disable application processing</span></label>
+                <div class="bolumSerit" style="max-width:none">VSS settings</div>
+                <p class="grinot" style="margin-bottom:12px; max-width:640px">Choose whether this job should process transaction logs upon successful backup. Logs pruning is supported for Microsoft Exchange, Microsoft SQL Server and other applications that support Microsoft VSS.</p>
+                <label class="radyoDuz"><input type="radio" name="psVss" value="process" checked> <span>Process transaction logs with this job (recommended)</span></label>
+                <label class="radyoDuz"><input type="radio" name="psVss" value="copy"> <span>Perform copy only (lets another application use logs)</span></label>
+                <div class="bolumSerit" style="max-width:none">Persistent guest agent</div>
+                <p class="grinot" style="margin-bottom:12px; max-width:640px">By default, application-aware processing on Windows is performed by a non-persistent runtime process. Deploying persistent agent removes security and port requirements of the runtime process injection.</p>
+                <label class="radyoDuz"><input type="checkbox" id="psAgent"> <span>Use persistent guest agent</span></label>
+              </div>
+              <div class="modalIc" id="psSql" hidden>
+                <div class="bolumSerit" style="max-width:none; margin-top:0">Transaction logs processing</div>
+                <label class="radyoDuz"><input type="radio" name="psLog" value="kes"> <span>Truncate logs (prevents logs from growing forever)</span></label>
+                <label class="radyoDuz"><input type="radio" name="psLog" value="dokunma"> <span>Do not truncate logs (requires simple recovery model)</span></label>
+                <label class="radyoDuz"><input type="radio" name="psLog" value="periyodik"> <span>Backup logs periodically (backed up logs will be truncated)</span></label>
+                <div class="satirIc" style="margin: 2px 0 16px 24px;"><span style="font-size:13.5px">Backup logs every:</span> <input type="number" class="sayiKucuk" id="psLogDk" value="15" min="5" max="120"> <span style="font-size:13.5px">minutes</span></div>
+                <div style="font-size:13.5px; font-weight:700; margin: 4px 0 10px">Retain log backups:</div>
+                <label class="radyoDuz"><input type="radio" name="psRetain" checked> <span>Until the corresponding image-level backup is deleted</span></label>
+                <label class="radyoDuz"><input type="radio" name="psRetain"> <span>Keep only last: <input type="number" class="sayiKucuk" value="15" min="1" max="99"> days of log backups</span></label>
+                <div class="alanGrup" style="margin-top:12px">
+                  <label class="alanEtiket">Log shipping servers:</label>
+                  <div class="satirIc"><input class="girdi" style="max-width:380px" value="Automatic selection" readonly> <button class="yesilLink" id="psLss">Choose</button></div>
+                </div>
+              </div>
+              <div class="modalIc" id="psDiger" hidden>
+                <p class="grinot">Bu sekme lab senaryosunun dışında — SQL iş yükümüz için General ve SQL sekmeleri yeterli.</p>
+              </div>
+              <div class="modalAlt">
+                <button class="btnYesil" onclick="psKapat(true)">OK</button>
+                <button class="btnGriB" onclick="psKapat(false)">Cancel</button>
+              </div>
+            </div>
           </div>
 
           <!-- GÖREV OTURUMU GÖRÜNÜMÜ -->
@@ -564,6 +636,13 @@ function puanVer(n, x, y) {
   document.body.appendChild(u);
   setTimeout(() => u.remove(), 1200);
 }
+/* başarı puanları yalnızca bir kez verilir */
+const oduller = new Set();
+function puanBirKere(anahtar, n, x, y) {
+  if (oduller.has(anahtar)) return;
+  oduller.add(anahtar);
+  puanVer(n, x, y);
+}
 
 /* ==================== EĞİTMEN ==================== */
 function egitmenSoyle(html, ton, ekHtml) {
@@ -598,6 +677,8 @@ function sihirbazBaslat() {
   document.getElementById("gorunumOturum").hidden = true;
   aktifAdim = 0;
   Object.assign(durum, { gorevAdi: "", vmEklendi: false, depo: null, saklama: 7, aap: false, logYontem: null, kimlik: null, saat: null });
+  oduller.clear();
+  psSifirla();
   const ray = document.getElementById("adimRay");
   ray.innerHTML = "";
   adimlar.forEach((a) => {
@@ -656,7 +737,7 @@ function icerikCiz() {
         const g = document.getElementById("gorevAdi");
         g.value = "SQL-PROD-Gunluk-Yedek";
         durum.gorevAdi = "SQL-PROD-Gunluk-Yedek";
-        puanVer(5, e.clientX, e.clientY);
+        puanBirKere("ad", 5, e.clientX, e.clientY);
         egitmenSoyle("<b>Neden bu isim?</b> Onlarca görevin olduğu bir ortamda <b>SQL-PROD-Gunluk-Yedek</b> gibi bir ad; kapsamı, ortamı ve sıklığı tek bakışta söyler. Adlandırma standardı, işletme tarafında hayat kurtarır.", "iyi");
       };
       break;
@@ -717,8 +798,8 @@ function icerikCiz() {
         const v = e.target.value;
         document.getElementById("depoBilgi").textContent = depoBilgi[v];
         if (v === "refs") {
-          if (durum.depo !== "refs") puanVer(15, innerWidth / 2, 300);
           durum.depo = "refs";
+          puanBirKere("depo", 15, innerWidth / 2, 300);
           egitmenSoyle("<b>Doğru depo!</b> Kapasiteyi saklama süresiyle birlikte hesapla: 120 GB VM × 14 gün, varsayılan depodaki 195 GB'a sığmaz. <b>REPO-REFS-01</b> hem yeterli alana sahip hem de ReFS <b>Fast Clone</b> ile sentetik tam yedekleri saniyeler içinde, veri kopyalamadan oluşturur.", "iyi");
         } else {
           durum.depo = v;
@@ -747,17 +828,9 @@ function icerikCiz() {
           <input type="checkbox" id="aapKutu" ${durum.aap ? "checked" : ""}>
           <span><span class="ad">Enable application-aware processing</span>
           <small>Detects and prepares applications for consistent backup, performs transaction logs processing, and configures the OS to perform required application restore steps upon first boot.</small>
-          <button class="yesilLink" id="aapSecenek" style="margin-top:5px; display:${durum.aap ? "inline" : "none"}">Application-aware processing options</button></span>
+          <button class="yesilLink" id="aapSecenek" style="margin-top:5px; display:${durum.aap ? "inline" : "none"}">Application-aware processing options</button>
+          <small id="aapOzet" style="color:var(--vg); font-weight:600; display:${durum.logYontem === "periyodik" ? "block" : "none"}">✔ SQL: Backup logs periodically (every ${psDk()} minutes)</small></span>
         </label>
-        <div id="sqlKutu" style="display:${durum.aap ? "block" : "none"}; margin: 4px 0 16px 26px;">
-          <div class="bolumSerit">Microsoft SQL Server transaction logs</div>
-          <label class="radyo ${durum.logYontem === "periyodik" ? "secili" : ""}"><input type="radio" name="log" value="periyodik" ${durum.logYontem === "periyodik" ? "checked" : ""}>
-            <span><span class="ad">Backup logs periodically (every 15 minutes)</span><small>Point-in-time kurtarma: veritabanını gün içinde istenen dakikaya döndürebilirsin</small></span></label>
-          <label class="radyo ${durum.logYontem === "kes" ? "secili" : ""}"><input type="radio" name="log" value="kes" ${durum.logYontem === "kes" ? "checked" : ""}>
-            <span><span class="ad">Truncate logs</span><small>Log dosyaları şişmez, ancak ara kurtarma noktası oluşmaz</small></span></label>
-          <label class="radyo ${durum.logYontem === "dokunma" ? "secili" : ""}"><input type="radio" name="log" value="dokunma" ${durum.logYontem === "dokunma" ? "checked" : ""}>
-            <span><span class="ad">Do not truncate logs (copy only)</span><small>Log zincirini başka bir yedekleme aracı yönetiyorsa kullanılır</small></span></label>
-        </div>
         <label class="onay">
           <input type="checkbox" id="indeks">
           <span><span class="ad">Enable guest file system indexing and malware detection</span>
@@ -781,34 +854,16 @@ function icerikCiz() {
       const aapKutu = document.getElementById("aapKutu");
       aapKutu.onchange = () => {
         durum.aap = aapKutu.checked;
-        document.getElementById("sqlKutu").style.display = durum.aap ? "block" : "none";
         document.getElementById("aapSecenek").style.display = durum.aap ? "inline" : "none";
         if (durum.aap) {
-          puanVer(20, innerWidth / 2, 300);
-          egitmenSoyle("<b>En kritik tıklama buydu! 🎯</b> Bu kutu olmadan alınan yedek 'crash-consistent'tir — elektriği kesilmiş sunucu gibi. VSS ile SQL, yedek anında bellekteki işlemleri diske yazar; yedek <b>application-consistent</b> olur ve kurtarınca veritabanı temiz açılır. Üstelik VM içine <b>ajan kurmadan</b>.", "iyi");
-        }
-      };
-      document.getElementById("aapSecenek").onclick = () => {
-        egitmenSoyle("Gerçek arayüzde bu bağlantı; VSS davranışı, log işleme ve betik ayarlarının bulunduğu paneli açar. Lab'da SQL log seçeneklerini aşağıda doğrudan gösteriyoruz.");
-      };
-      ic.querySelectorAll('input[name="log"]').forEach(r => r.onchange = (e) => {
-        ic.querySelectorAll(".radyo").forEach(x => x.classList.remove("secili", "hatali"));
-        const kutu = e.target.closest(".radyo");
-        if (e.target.value === "periyodik") {
-          kutu.classList.add("secili");
-          if (durum.logYontem !== "periyodik") puanVer(15, innerWidth / 2, 340);
-          durum.logYontem = "periyodik";
-          egitmenSoyle("<b>Neden periyodik log yedeği?</b> Gece 22:00 imaj yedeği + gün boyu 15 dakikalık log yedekleri = veritabanını <b>felaketten 15 dakika öncesine</b> döndürme gücü. 'Saat 14:37'de tablo silindi' senaryosunda hayat kurtarır.", "iyi");
+          puanBirKere("aap", 20, innerWidth / 2, 300);
+          egitmenSoyle("<b>En kritik tıklama buydu! 🎯</b> Bu kutu olmadan alınan yedek 'crash-consistent'tir — elektriği kesilmiş sunucu gibi. VSS ile SQL, yedek anında bellekteki işlemleri diske yazar; yedek <b>application-consistent</b> olur. Şimdi açılan <b>Processing Settings</b> penceresinde ayarları yapılandır: General sekmesindeki varsayılanlar doğru, asıl karar <b>SQL sekmesinde</b>.", "iyi");
+          psAc();
         } else {
-          kutu.classList.add("hatali");
-          durum.logYontem = null;
-          puanVer(-5, innerWidth / 2, 340);
-          egitmenSoyle(e.target.value === "kes"
-            ? "Truncate, log şişmesini önler ama <b>point-in-time kurtarma</b> şansını kaybedersin. Üretim SQL'i için periyodik log yedeği daha güçlüdür. Tekrar seç."
-            : "Bu seçenek yalnızca log zincirini <b>başka bir araç</b> yönetiyorsa doğrudur; bizim senaryoda tek araç Veeam. Tekrar seç.", "uyari");
-          e.target.checked = false;
+          egitmenSoyle("AAP'yi kapattın — SQL yedeğinde bu kutu olmadan ilerleyemezsin. Tekrar işaretle.", "uyari");
         }
-      });
+      };
+      document.getElementById("aapSecenek").onclick = () => psAc();
       document.getElementById("indeks").onchange = (e) => {
         if (e.target.checked) egitmenSoyle("<b>Bonus bilgi:</b> Dosya sistemi indeksleme, yedek içinde tekil dosya araması sağlar; v12.1+ ile <b>kötü amaçlı yazılım tespiti</b> de yapar. SQL senaryomuz için zorunlu değil ama güvenlik katmanı ekler.");
       };
@@ -817,8 +872,8 @@ function icerikCiz() {
       };
       document.getElementById("kimlikSec").onchange = (e) => {
         if (e.target.value === "svc") {
-          if (durum.kimlik !== "svc") puanVer(5, innerWidth / 2, 420);
           durum.kimlik = "svc";
+          puanBirKere("kimlik", 5, innerWidth / 2, 420);
           egitmenSoyle("<b>Neden servis hesabı?</b> AAP, VM içindeki işletim sistemine bağlanıp VSS'i tetikler; SQL üzerinde yetkili bir hesap gerekir. Kişisel hesap yerine <b>özel servis hesabı</b>: şifre değişince görevler kırılmaz, yetki izlenebilir olur.", "iyi");
         } else if (e.target.value === "kisisel") {
           durum.kimlik = null;
@@ -832,53 +887,61 @@ function icerikCiz() {
 
     case 4: /* --------- SCHEDULE --------- */
       ic.innerHTML = `
-        <label class="onay">
+        <label class="onay" style="margin-bottom:10px">
           <input type="checkbox" id="otoCalis" checked>
           <span><span class="ad">Run the job automatically</span></span>
         </label>
-        <div class="satirIc" style="margin: 0 0 6px 26px;">
-          <select class="girdi" style="max-width:190px"><option>Daily at this time</option><option>Monthly at this time</option><option>Periodically every</option><option>After this job</option></select>
-          <select class="girdi" id="saatSec" style="max-width:120px">
-            <option value="">--:--</option>
+        <div class="satirIc" style="margin: 0 0 14px 26px;">
+          <select class="girdi" style="max-width:180px"><option>Daily at this time</option><option>Monthly at this time</option><option>Periodically every</option><option>After this job</option></select>
+          <select class="girdi" id="saatSec" style="max-width:110px">
+            <option value="10:00" ${!durum.saat ? "selected" : ""}>10:00</option>
             <option value="09:00" ${durum.saat === "09:00" ? "selected" : ""}>09:00</option>
             <option value="13:00" ${durum.saat === "13:00" ? "selected" : ""}>13:00</option>
             <option value="22:00" ${durum.saat === "22:00" ? "selected" : ""}>22:00</option>
             <option value="03:00" ${durum.saat === "03:00" ? "selected" : ""}>03:00</option>
           </select>
-          <select class="girdi" style="max-width:150px"><option>Everyday</option><option>On weekdays</option><option>On these days</option></select>
+          <select class="girdi" style="max-width:140px"><option>Everyday</option><option>On weekdays</option><option>On these days</option></select>
+          <select class="girdi griMetin" style="max-width:180px" disabled><option>Monday, Tuesday, ...</option></select>
         </div>
-        <div class="bolumSerit">Automatic retry</div>
-        <label class="onay" style="margin-left:0">
+        <div class="bolumSerit" style="max-width:none">Automatic retry</div>
+        <label class="onay" style="margin-bottom:10px">
           <input type="checkbox" checked id="yenidenDene">
-          <span><span class="ad">Enable automatic retry</span>
-          <small>Retry failed items processing: 3 times · Wait before each retry attempt for: 10 minutes</small></span>
+          <span><span class="ad">Enable automatic retry</span></span>
         </label>
-        <div class="bolumSerit">Backup window</div>
-        <label class="onay" style="margin-left:0">
+        <div class="satirIc" style="margin: 0 0 10px 26px;"><span style="font-size:13.5px">Retry failed items processing:</span> <input type="number" class="sayiKucuk" id="deneAdet" value="3" min="1" max="10"> <span style="font-size:13.5px">times</span></div>
+        <div class="satirIc" style="margin: 0 0 14px 26px;"><span style="font-size:13.5px">Wait before each retry attempt for:</span> <input type="number" class="sayiKucuk" id="deneBekle" value="10" min="1" max="60"> <span style="font-size:13.5px">minutes</span></div>
+        <div class="bolumSerit" style="max-width:none">Backup window</div>
+        <label class="onay">
           <input type="checkbox" id="pencereSinir">
           <span><span class="ad">Terminate the job outside of the allowed backup window</span>
-          <small>Long running or accidentally started jobs will be terminated to prevent impact on your production infrastructure during busy hours.</small></span>
+          <small>Long running or accidentally started jobs will be terminated to prevent impact on your production infrastructure during busy hours.</small>
+          <small class="griMetin" style="font-weight:600">Window</small></span>
         </label>`;
       document.getElementById("saatSec").onchange = (e) => {
         const s = e.target.value;
         if (s === "22:00" || s === "03:00") {
-          if (durum.saat !== s) puanVer(15, innerWidth / 2, 260);
           durum.saat = s;
+          puanBirKere("saat", 15, innerWidth / 2, 260);
           egitmenSoyle(`<b>Doğru pencere!</b> ${s} mesai dışıdır: snapshot alma ve veri okuma, kullanıcılar sistemdeyken değil, yük düşükken yapılır. Buna <b>yedekleme penceresi</b> denir — üretime etki en aza iner.`, "iyi");
-        } else if (s) {
+        } else {
           durum.saat = null;
           puanVer(-5, innerWidth / 2, 260);
           egitmenSoyle(`${s} üretimin en yoğun saatlerinden: yedekleme sırasında disk ve ağ yükü kullanıcıları yavaşlatır, snapshot uzun süre açık kalır. <b>Mesai dışı</b> bir saat seç.`, "uyari");
-          e.target.value = "";
         }
+      };
+      document.getElementById("otoCalis").onchange = (e) => {
+        if (!e.target.checked) { e.target.checked = true; egitmenSoyle("Zamanlamasız görev manuel çalıştırılmak zorunda kalır — 'yedek almayı unutmak' diye bir risk bırakmayız. Kutu işaretli kalsın.", "uyari"); }
       };
       document.getElementById("yenidenDene").onchange = (e) => {
         if (!e.target.checked) { e.target.checked = true; egitmenSoyle("Otomatik yeniden denemeyi kapatma: geçici bir ağ sorunu gece görevini boşuna başarısız bırakır. 3 deneme / 10 dk bekleme varsayılanı dengelidir.", "uyari"); }
       };
+      const retryBilgi = () => egitmenSoyle("<b>Automatic retry:</b> Görev ya da içindeki bir VM başarısız olursa Veeam belirtilen aralıkla yeniden dener — yalnızca başarısız nesneleri işler, baştan başlamaz. 3 deneme / 10 dakika çoğu ortam için dengeli varsayılandır.");
+      document.getElementById("deneAdet").oninput = retryBilgi;
+      document.getElementById("deneBekle").oninput = retryBilgi;
       document.getElementById("pencereSinir").onchange = (e) => {
         if (e.target.checked) egitmenSoyle("<b>Backup window sınırı:</b> Görev sabaha kadar bitmezse, mesai başlarken otomatik sonlandırılır ve üretim etkilenmez. Yoğun ortamlarda iyi bir sigortadır — lab senaryomuzda opsiyonel.");
       };
-      egitmenSoyle("Yedekleme görevi üretim sistemlerinden veri okur — bu yüzden <b>ne zaman</b> çalıştığı, <b>nasıl</b> çalıştığı kadar önemlidir. Saat listesinden uygun pencereyi seç.");
+      egitmenSoyle("Yedekleme görevi üretim sistemlerinden veri okur — bu yüzden <b>ne zaman</b> çalıştığı, <b>nasıl</b> çalıştığı kadar önemlidir. Varsayılan saat 10:00'a dikkat: uygun mu? Saat listesinden doğru pencereyi seç.");
       break;
 
     case 5: /* --------- SUMMARY --------- */
@@ -891,7 +954,7 @@ function icerikCiz() {
             <tr><td style="color:var(--soluk)">Backup repository</td><td>REPO-REFS-01 (ReFS, Fast Clone)</td></tr>
             <tr><td style="color:var(--soluk)">Retention policy</td><td>${durum.saklama} days</td></tr>
             <tr><td style="color:var(--soluk)">Application-aware processing</td><td style="color:var(--vg); font-weight:600">✔ Enabled (VSS)</td></tr>
-            <tr><td style="color:var(--soluk)">SQL transaction logs</td><td>Backup logs periodically (every 15 minutes)</td></tr>
+            <tr><td style="color:var(--soluk)">SQL transaction logs</td><td>Backup logs periodically (every ${psDk()} minutes)</td></tr>
             <tr><td style="color:var(--soluk)">Schedule</td><td>Daily at ${durum.saat} · retry 3 times</td></tr>
           </tbody>
         </table>
@@ -948,6 +1011,92 @@ function panelKapat() {
   document.getElementById("ortu").classList.remove("acik");
 }
 
+/* ==================== PROCESSING SETTINGS MODALI ==================== */
+function psDk() {
+  const e = document.getElementById("psLogDk");
+  return e ? (e.value || 15) : 15;
+}
+function psSekmeGoster(ad) {
+  document.querySelectorAll("#psSekmeler .sekme").forEach(s => s.classList.toggle("aktifS", s.dataset.sekme === ad));
+  document.getElementById("psGeneral").hidden = ad !== "general";
+  document.getElementById("psSql").hidden = ad !== "sql";
+  document.getElementById("psDiger").hidden = (ad === "general" || ad === "sql");
+}
+function psAc() {
+  document.getElementById("psOrtu").classList.add("acik");
+  document.getElementById("psModal").classList.add("acik");
+  psSekmeGoster("general");
+}
+function psKapat(onaylandi) {
+  if (onaylandi && !durum.logYontem) {
+    psSekmeGoster("sql");
+    egitmenSoyle("Kapatmadan önce <b>SQL sekmesinde</b> işlem günlüğü (transaction log) stratejisini seçmelisin — bu, SQL yedeğinin en önemli kararı.", "uyari");
+    return;
+  }
+  document.getElementById("psOrtu").classList.remove("acik");
+  document.getElementById("psModal").classList.remove("acik");
+  if (onaylandi && durum.logYontem === "periyodik") {
+    const ozet = document.getElementById("aapOzet");
+    if (ozet) { ozet.style.display = "block"; ozet.innerHTML = `✔ SQL: Backup logs periodically (every ${psDk()} minutes)`; }
+    egitmenSoyle("Processing Settings kaydedildi. Artık hem imaj yedeği uygulama tutarlı, hem de gün boyu " + psDk() + " dakikada bir log yedeği alınacak — <b>point-in-time</b> kurtarmaya hazırsın. Şimdi kimlik bilgisini seçip devam et.", "iyi");
+  }
+}
+function psSifirla() {
+  const m = document.getElementById("psModal");
+  if (!m) return;
+  m.querySelector('input[name="psApp"][value="require"]').checked = true;
+  m.querySelector('input[name="psVss"][value="process"]').checked = true;
+  m.querySelectorAll('input[name="psLog"]').forEach(r => r.checked = false);
+  m.querySelectorAll('input[name="psRetain"]')[0].checked = true;
+  const agent = document.getElementById("psAgent"); if (agent) agent.checked = false;
+  const dk = document.getElementById("psLogDk"); if (dk) dk.value = 15;
+  psSekmeGoster("general");
+}
+/* modal olay bağlama (statik HTML, bir kez) */
+document.querySelectorAll("#psSekmeler .sekme").forEach(s => s.onclick = () => {
+  psSekmeGoster(s.dataset.sekme);
+  if (s.dataset.sekme === "sql") egitmenSoyle("İşte kritik sekme: SQL Server <b>işlem günlükleri</b> ne olacak? Üç seçeneği oku ve senaryomuza uygun olanı seç.");
+  else if (s.dataset.sekme !== "general") egitmenSoyle("Bu sekme (" + s.textContent + ") başka iş yükleri ve ileri senaryolar için — SQL lab'ımızda General ve SQL sekmeleri yeterli.");
+});
+document.querySelectorAll('#psModal input[name="psApp"]').forEach(r => r.onchange = (e) => {
+  if (e.target.value === "disable") {
+    puanVer(-5, innerWidth / 2, 280);
+    egitmenSoyle("<b>Bunu yaparsan AAP'yi boşa açmış olursun!</b> 'Disable application processing', uygulama tutarlılığını tamamen kapatır. Önerilen: <b>Require successful processing</b> — uygulama işleme başarısızsa yedek de başarısız sayılır, sahte güvenlik oluşmaz.", "uyari");
+    document.querySelector('#psModal input[name="psApp"][value="require"]').checked = true;
+  } else if (e.target.value === "ignore") {
+    egitmenSoyle("'Ignore failures': VSS başarısız olsa bile yedek devam eder ama o yedek crash-consistent olabilir — <b>fark etmeden</b> tutarsız yedeklere güvenebilirsin. Üretim SQL'i için önerilen 'Require successful processing'tir.", "uyari");
+  } else {
+    egitmenSoyle("<b>Doğru:</b> 'Require successful processing' ile uygulama işleme garantiye alınır — VSS başarısızsa görev uyarı verir, sen de sorunu görürsün.", "iyi");
+  }
+});
+document.querySelectorAll('#psModal input[name="psVss"]').forEach(r => r.onchange = (e) => {
+  if (e.target.value === "copy") {
+    puanVer(-5, innerWidth / 2, 320);
+    egitmenSoyle("<b>Copy only</b>, log zincirine dokunmaz — yalnızca logları <b>başka bir yedekleme aracı</b> yönetiyorsa kullanılır. Senaryomuzda tek araç Veeam: 'Process transaction logs with this job' kalmalı.", "uyari");
+    document.querySelector('#psModal input[name="psVss"][value="process"]').checked = true;
+  }
+});
+document.getElementById("psAgent").onchange = (e) => {
+  if (e.target.checked) egitmenSoyle("<b>Persistent guest agent:</b> Normalde Veeam, VM içine geçici bir çalışma süreci enjekte eder ve iş bitince siler. Sıkı güvenlik/port kısıtı olan ortamlarda kalıcı ajan tercih edilebilir. Lab'ımızda gerek yok.");
+};
+document.querySelectorAll('#psModal input[name="psLog"]').forEach(r => r.onchange = (e) => {
+  if (e.target.value === "periyodik") {
+    durum.logYontem = "periyodik";
+    puanBirKere("log", 15, innerWidth / 2, 320);
+    egitmenSoyle("<b>Neden periyodik log yedeği?</b> Gece imaj yedeği + gün boyu " + psDk() + " dakikalık log yedekleri = veritabanını <b>felaketten dakikalar öncesine</b> döndürme gücü. 'Saat 14:37'de tablo silindi' senaryosunda hayat kurtarır. OK ile kaydet.", "iyi");
+  } else {
+    durum.logYontem = null;
+    puanVer(-5, innerWidth / 2, 320);
+    egitmenSoyle(e.target.value === "kes"
+      ? "Truncate, log şişmesini önler ama <b>point-in-time kurtarma</b> şansını kaybedersin: yalnızca gecelik noktalara dönebilirsin. Üretim SQL'i için daha güçlü bir seçenek var — tekrar bak."
+      : "'Do not truncate' yalnızca log zincirini <b>başka bir araç</b> yönetiyorsa ya da simple recovery model'de doğrudur. Bizim senaryoda tek araç Veeam — tekrar bak.", "uyari");
+    e.target.checked = false;
+  }
+});
+document.getElementById("psLss").onclick = () => {
+  egitmenSoyle("<b>Log shipping servers:</b> Log yedeklerini depoya taşıyan aracı sunucular. Automatic selection'da Veeam en uygununu seçer — çoğu ortamda dokunmana gerek yok.");
+};
+
 function nesneEkle() {
   if (secimler.size === 0) {
     egitmenSoyle("Önce ağaçtan bir nesne işaretlemelisin.", "uyari");
@@ -962,7 +1111,7 @@ function nesneEkle() {
   durum.vmEklendi = true;
   panelKapat();
   vmSatirYaz();
-  puanVer(15, innerWidth / 2, 260);
+  puanBirKere("vm", 15, innerWidth / 2, 260);
   egitmenSoyle("<b>Neden VM seviyesinde, ajansız?</b> Veeam, hipervizör API'leri üzerinden tüm sanal makineyi (işletim sistemi + SQL + veriler) imaj olarak yedekler — VM içine <b>ajan kurulmaz</b>. Tek görevle hem sunucuyu komple, hem tek bir veritabanını kurtarabilir hale geliyoruz.", "iyi");
 }
 
@@ -980,7 +1129,7 @@ function adimIleri() {
     1: () => !durum.vmEklendi && "Görev kapsamı boş — 'Choose at least one VM to proceed.' ＋ Add ile SQL-PROD-01'i ekle.",
     2: () => durum.depo !== "refs" && "Depo seçimini gözden geçir: seçili deponun kapasitesi 14 günlük zincir için yeterli mi? Listeden uygun olanı seç.",
     3: () => (!durum.aap && "SQL yedeğinde <b>application-aware processing</b> olmadan ilerlemek 'crash-consistent' yedek demek — kutuyu işaretle! (-10 puan)")
-          || (!durum.logYontem && "SQL işlem günlükleri için bir strateji seçmelisin.")
+          || (!durum.logYontem && "Processing Settings penceresinin <b>SQL sekmesinde</b> işlem günlüğü stratejisini seçmelisin — pencereyi tekrar açtım.")
           || (!durum.kimlik && "AAP'nin çalışması için Guest OS Credentials seç."),
     4: () => !durum.saat && "Mesai dışı bir çalışma saati seçmelisin.",
   }[aktifAdim];
@@ -988,6 +1137,7 @@ function adimIleri() {
   if (mesaj) {
     if (aktifAdim === 3 && !durum.aap) puanVer(-10, innerWidth / 2, 200);
     egitmenSoyle(mesaj, "uyari");
+    if (aktifAdim === 3 && durum.aap && !durum.logYontem) { psAc(); psSekmeGoster("sql"); }
     return;
   }
   if (aktifAdim < adimlar.length - 1) { aktifAdim++; adimCiz(); }
@@ -1004,7 +1154,7 @@ const asamaListesi = [
 ];
 
 function gorevCalistir() {
-  puanVer(10, innerWidth / 2, 200);
+  puanBirKere("bitir", 10, innerWidth / 2, 200);
   document.getElementById("gorunumSihirbaz").hidden = true;
   document.getElementById("gorunumOturum").hidden = false;
   document.getElementById("oturumAd").textContent = durum.gorevAdi;
@@ -1037,6 +1187,7 @@ function gorevCalistir() {
   const TOPLAM = 120, ORAN = 2.4;
   let evre = 0, yuzde = 0;
   const evreSinir = [4, 10, 10, 88, 100];
+  const baslangic = Date.now(), SURE = 14000; /* ilerleme gerçek zamana bağlı: sekme arka planda kalsa da zamanında biter */
 
   const asamaAc = (i) => {
     for (let j = 0; j < asamaListesi.length; j++) {
@@ -1053,7 +1204,7 @@ function gorevCalistir() {
   snap.setAttribute("opacity", 1);
 
   const zamanlayici = setInterval(() => {
-    yuzde = Math.min(100, yuzde + 1.6 + Math.random() * 1.2);
+    yuzde = Math.min(100, (Date.now() - baslangic) / SURE * 100);
     document.getElementById("ilerleme").style.width = yuzde + "%";
 
     while (evre < evreSinir.length && yuzde >= evreSinir[evre]) {
