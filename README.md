@@ -17,8 +17,8 @@
 
 | İçerik | Biçim |
 |--------|-------|
-| [SQL Backup Karar Rehberi](notlar/sql-backup-karar-rehberi.pdf) — Agent / VM Backup / SQL Plug-in karar ağacı | PDF, 4 sayfa |
-| [VSA ile Authentication Yöntemleri](notlar/vsa-authentication-yontemleri.pdf) — Kerberos & sertifika, NTLM'siz dünya (v13) | PDF, 6 sayfa |
+| [SQL Backup Karar Rehberi](notlar/sql-backup-karar-rehberi.html) — Agent / VM Backup / SQL Plug-in karar ağacı | Karusel (4 kart) · [PDF](notlar/sql-backup-karar-rehberi.pdf) |
+| [VSA ile Authentication Yöntemleri](notlar/vsa-authentication-yontemleri.html) — Kerberos & sertifika, NTLM'siz dünya (v13) | Karusel (6 kart) · [PDF](notlar/vsa-authentication-yontemleri.pdf) |
 
 ## Teknik
 

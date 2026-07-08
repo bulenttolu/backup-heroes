@@ -371,9 +371,13 @@
           <p>SQL Server'ı nasıl korursunuz? Fiziksel mi VM mi, yönetim Altyapı'da mı DBA'de mi? Ajansız imaj yedekleme, Veeam Agent ve SQL Plug-in'i tek karar ağacında karşılaştıran saha rehberi.</p>
           <div class="etiketler">
             <span class="etiket yesil">Karar Ağacı</span>
-            <span class="etiket">PDF · 4 sayfa</span>
+            <span class="etiket">4 kart</span>
+            <span class="etiket" id="notSayacSql" hidden>👥 —</span>
           </div>
-          <a class="btnP" href="notlar/sql-backup-karar-rehberi.pdf" target="_blank" rel="noopener">Aç →</a>
+          <div style="display:flex; gap:14px; align-items:center;">
+            <a class="btnP" href="notlar/sql-backup-karar-rehberi.html">Oku →</a>
+            <a class="yesilLink" style="text-decoration:none" href="notlar/sql-backup-karar-rehberi.pdf" target="_blank" rel="noopener">PDF ⇩</a>
+          </div>
         </div>
       </article>
       <article class="ucKart">
@@ -383,9 +387,13 @@
           <p>VSA (v13) yalnızca Kerberos ve sertifikayı native konuşur — NTLM kaldırıldı. Neden bu tercih, yanlış yapılandırma hangi hatalarla kendini gösterir ve Deployment Kit / GIP / Kerberos ile üç kurulum yolu.</p>
           <div class="etiketler">
             <span class="etiket yesil">VSA · v13</span>
-            <span class="etiket">PDF · 6 sayfa</span>
+            <span class="etiket">6 kart</span>
+            <span class="etiket" id="notSayacVsa" hidden>👥 —</span>
           </div>
-          <a class="btnP" href="notlar/vsa-authentication-yontemleri.pdf" target="_blank" rel="noopener">Aç →</a>
+          <div style="display:flex; gap:14px; align-items:center;">
+            <a class="btnP" href="notlar/vsa-authentication-yontemleri.html">Oku →</a>
+            <a class="yesilLink" style="text-decoration:none" href="notlar/vsa-authentication-yontemleri.pdf" target="_blank" rel="noopener">PDF ⇩</a>
+          </div>
         </div>
       </article>
     </div>
@@ -687,6 +695,21 @@ async function labSayac(tip) {
   } catch { /* servis erişilemezse gizli kalır */ }
 }
 labSayac("get");
+
+/* Sahadan Notlar sayaçları: sayım not sayfalarının kendisinde yapılır, burada yalnızca okunur */
+async function notSayacGoster(anahtar, elId) {
+  try {
+    const y = await fetch("https://abacus.jasoncameron.dev/get/backup-heroes-bulenttolu/" + anahtar);
+    const j = await y.json();
+    if (typeof j.value === "number") {
+      const e = document.getElementById(elId);
+      e.textContent = "👥 " + j.value.toLocaleString("tr-TR") + " okuma";
+      e.hidden = false;
+    }
+  } catch { /* servis yoksa gizli kalır */ }
+}
+notSayacGoster("not-sql-karar", "notSayacSql");
+notSayacGoster("not-vsa-auth", "notSayacVsa");
 
 /* ==================== GEZINTI ==================== */
 function labAc() {

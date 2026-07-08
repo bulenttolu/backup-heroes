@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Backup Karar Rehberi — Sahadan Notlar</title>
+<meta property="og:title" content="SQL Backup Karar Rehberi">
+<meta property="og:description" content="SQL Server'ı nasıl korursunuz? Veeam Agent, VM Backup ve SQL Plug-in'i tek karar ağacında karşılaştıran saha rehberi.">
+<style>
+  :root {
+    --vg: #17803f; --vg-koyu: #12662f; --vg-acik: #e7f4ec; --vg-cizgi: #bfe3cd;
+    --sayfa: #eef1f0; --beyaz: #ffffff; --zemin2: #f5f6f6; --cizgi: #d9dcdb;
+    --metin: #1f2428; --soluk: #676e6a; --mavi: #2f80ed;
+    --amber: #b97a08; --amber-a: #fdf3df; --kirmizi: #c9303e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--sayfa); color: var(--metin);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    padding: 22px 14px 40px;
+  }
+  .mono { font-family: "Cascadia Code", Consolas, monospace; }
+  a { color: var(--vg); }
+  .ust { width: 100%; max-width: 760px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .geri { text-decoration: none; background: var(--beyaz); border: 1px solid var(--cizgi); color: var(--metin); border-radius: 9px; padding: 8px 15px; font-size: 13.5px; font-weight: 600; }
+  .geri:hover { border-color: var(--vg); color: var(--vg); }
+  .rozetcik { display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; letter-spacing: 1.3px; color: var(--vg); text-transform: uppercase; border: 1px solid var(--vg-cizgi); background: var(--vg-acik); padding: 5px 13px; border-radius: 999px; }
+  .ust .sag { margin-left: auto; display: flex; gap: 10px; align-items: center; font-size: 12.5px; color: var(--soluk); }
+  .ust .sag a { font-weight: 600; }
+
+  .sahne { width: 100%; max-width: 760px; position: relative; }
+  .kart {
+    background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 18px;
+    box-shadow: 0 10px 34px #0f2b1a14; padding: 40px 44px; min-height: 520px;
+    display: none; flex-direction: column;
+  }
+  .kart.aktif { display: flex; animation: gel .3s ease; }
+  @keyframes gel { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .kart.aktif { animation: none; } }
+  .kart .eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--soluk); margin-bottom: 14px; }
+  .kart h2 { font-size: clamp(22px, 3.6vw, 30px); line-height: 1.2; margin-bottom: 12px; text-wrap: balance; }
+  .kart .buyuk { font-size: clamp(30px, 5vw, 42px); line-height: 1.12; }
+  .kart .altYazi { font-size: 15.5px; color: var(--soluk); line-height: 1.7; max-width: 540px; }
+  .kart .altYazi b { color: var(--metin); }
+  .ortala { justify-content: center; text-align: center; align-items: center; }
+
+  .cipSira { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+  .cip { font-size: 13px; font-weight: 700; padding: 7px 16px; border-radius: 999px; background: var(--vg-acik); color: var(--vg); border: 1px solid var(--vg-cizgi); }
+
+  /* karar ağacı */
+  .agac { display: flex; flex-direction: column; align-items: center; gap: 0; margin-top: 18px; }
+  .kutu { background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 10px; padding: 9px 18px; font-size: 13.5px; font-weight: 700; text-align: center; }
+  .kutu.kok { background: var(--vg); color: #fff; border-color: var(--vg-koyu); font-size: 14.5px; }
+  .kutu.sonuc { background: var(--vg-acik); border-color: var(--vg-cizgi); color: var(--vg); }
+  .kutu small { display: block; font-weight: 400; font-size: 11.5px; color: var(--soluk); margin-top: 3px; }
+  .kutu.sonuc small { color: #4c8a63; }
+  .dallar { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; width: 100%; margin-top: 0; }
+  .dal { display: flex; flex-direction: column; align-items: center; }
+  .ok { color: #a7b0ab; font-size: 15px; line-height: 1.5; padding: 2px 0; }
+  .soru { font-size: 11.5px; color: var(--soluk); font-weight: 600; padding: 3px 0; }
+  .ikiSonuc { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+  .ikiSonuc .dal { min-width: 0; }
+  .ikiSonuc .kutu { width: 100%; padding: 9px 6px; }
+
+  .uyariKutu { margin-top: 20px; background: var(--amber-a); border: 1px solid #ecd9b0; border-left: 4px solid var(--amber); border-radius: 10px; padding: 12px 16px; font-size: 13.5px; line-height: 1.6; color: #6d4a06; }
+  .uyariKutu b { color: #543a02; }
+  .dipNot { margin-top: 14px; text-align: center; font-size: 13.5px; color: var(--soluk); font-style: italic; }
+
+  /* yöntem kartları */
+  .yontemler { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  .yontem { display: flex; gap: 16px; background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 13px; padding: 15px 18px; }
+  .yontem .no { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; background: var(--vg); color: #fff; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+  .yontem h3 { font-size: 15.5px; margin-bottom: 4px; }
+  .yontem .meta { display: flex; gap: 8px; margin-bottom: 7px; flex-wrap: wrap; }
+  .yontem .meta span { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: var(--beyaz); border: 1px solid var(--cizgi); color: var(--soluk); }
+  .yontem ul { list-style: none; font-size: 13px; color: #3a423d; line-height: 1.65; }
+  .yontem ul li::before { content: "• "; color: var(--vg); font-weight: 700; }
+  .yontem .nezaman { margin-top: 6px; font-size: 12.5px; color: var(--vg); font-weight: 600; }
+
+  .etiketBulut { margin-top: 22px; font-size: 13px; color: #9aa39e; }
+  .labCagri { margin-top: 26px; display: inline-block; text-decoration: none; background: var(--vg); color: #fff; border: 1px solid var(--vg-koyu); border-radius: 10px; font-size: 14.5px; font-weight: 700; padding: 12px 24px; }
+  .labCagri:hover { background: var(--vg-koyu); }
+
+  /* gezinme */
+  .gezin { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+  .okBtn { cursor: pointer; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--cizgi); background: var(--beyaz); color: var(--metin); font-size: 17px; display: flex; align-items: center; justify-content: center; transition: border-color .12s, color .12s; }
+  .okBtn:hover:not(:disabled) { border-color: var(--vg); color: var(--vg); }
+  .okBtn:disabled { opacity: .35; cursor: default; }
+  .noktalar { display: flex; gap: 7px; }
+  .nokta { width: 9px; height: 9px; border-radius: 50%; background: #c8cdcb; border: none; cursor: pointer; padding: 0; }
+  .nokta.aktif { background: var(--vg); width: 22px; border-radius: 999px; }
+  .sayfaNo { font-size: 12.5px; color: var(--soluk); font-variant-numeric: tabular-nums; min-width: 40px; text-align: center; }
+
+  .altBilgi { margin-top: 20px; display: flex; gap: 14px; align-items: center; font-size: 12.5px; color: var(--soluk); flex-wrap: wrap; justify-content: center; }
+  .altBilgi b { color: var(--metin); }
+  :focus-visible { outline: 2px solid var(--mavi); outline-offset: 2px; }
+
+  @media (max-width: 620px) {
+    .kart { padding: 26px 22px; min-height: 480px; }
+    .dallar { gap: 8px; }
+    .kutu { font-size: 12px; padding: 8px 8px; }
+    .kutu small { font-size: 10.5px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ust">
+  <a class="geri" href="../">← Platform</a>
+  <span class="rozetcik">Sahadan Notlar · SQL</span>
+  <span class="sag"><a href="sql-backup-karar-rehberi.pdf" target="_blank" rel="noopener">PDF indir ⇩</a></span>
+</div>
+
+<div class="sahne" id="sahne">
+
+  <!-- 1: kapak -->
+  <section class="kart ortala aktif">
+    <div class="eyebrow">SQL Backup Karar Rehberi</div>
+    <h2 class="buyuk">SQL Server'ı<br>Nasıl Korursunuz?</h2>
+    <p class="altYazi" style="margin-top:10px">Veeam'de aynı workload'ı <b>3 farklı katmanda</b> koruyabilirsiniz.<br>Hangisini ne zaman kullanmalısınız?</p>
+    <div class="cipSira">
+      <span class="cip">🛡️ VM Backup</span>
+      <span class="cip">💻 Veeam Agent</span>
+      <span class="cip">🗄️ SQL Plug-in</span>
+    </div>
+  </section>
+
+  <!-- 2: karar ağacı -->
+  <section class="kart">
+    <div class="eyebrow">Karar Ağacı</div>
+    <h2>Fiziksel mi, VM mi? Kim yönetecek?</h2>
+    <div class="agac">
+      <div class="kutu kok">SQL Server</div>
+      <div class="ok">↓</div>
+      <div class="dallar">
+        <div class="dal">
+          <div class="kutu">🖥 Fiziksel Sunucu</div>
+          <div class="soru">Kim yönetecek?</div>
+          <div class="ikiSonuc">
+            <div class="dal">
+              <div class="soru">Altyapı</div><div class="ok">↓</div>
+              <div class="kutu sonuc">Veeam Agent<small>Failover Cluster dahil, her senaryoda çalışır</small></div>
+            </div>
+            <div class="dal">
+              <div class="soru">DBA</div><div class="ok">↓</div>
+              <div class="kutu sonuc">SQL Plug-in<small>DBA native T-SQL kontrolü istiyorsa</small></div>
+            </div>
+          </div>
+        </div>
+        <div class="dal">
+          <div class="kutu">☁️ VM</div>
+          <div class="soru">Kim yönetecek?</div>
+          <div class="ikiSonuc">
+            <div class="dal">
+              <div class="soru">Altyapı</div><div class="ok">↓</div>
+              <div class="kutu sonuc">VM Backup<small>Standart senaryo, AAIP ile</small></div>
+            </div>
+            <div class="dal">
+              <div class="soru">DBA</div><div class="ok">↓</div>
+              <div class="kutu sonuc">SQL Plug-in<small>DBA native kontrol istiyorsa</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="uyariKutu"><b>İstisna:</b> VM'de paylaşımlı disk (shared storage) kullanan cluster varsa, VM Backup değil <b>Agent</b> gerekir. Always On Availability Groups bundan etkilenmez.</div>
+    <p class="dipNot">Tek bir doğru yöntem yok — ortamınıza göre değişir.</p>
+  </section>
+
+  <!-- 3: üç yöntem -->
+  <section class="kart">
+    <div class="eyebrow">3 Yöntem · 3 Farklı Yaklaşım</div>
+    <h2>Aynı SQL workload'ı, farklı katmanlarda korunuyor</h2>
+    <div class="yontemler">
+      <div class="yontem">
+        <div class="no">1</div>
+        <div>
+          <h3>Ajansız İmaj Yedekleme (VM Tabanlı)</h3>
+          <div class="meta"><span>Yönetim: Altyapı</span><span>VSS: Gerekli</span></div>
+          <ul>
+            <li>Sanal makine seviyesinde çalışır, ekstra bir ajan kurmaya gerek yok</li>
+            <li>SQL veritabanının uygulama tutarlı yedeği alınır</li>
+            <li>Arzu edilirse transaction log'ları da alınır ve truncate edilir</li>
+          </ul>
+          <div class="nezaman">Ne zaman: Sanal makine ortamlarında.</div>
+        </div>
+      </div>
+      <div class="yontem">
+        <div class="no">2</div>
+        <div>
+          <h3>Veeam Agent for Windows</h3>
+          <div class="meta"><span>Yönetim: Altyapı</span><span>VSS: Gerekli</span></div>
+          <ul>
+            <li>Fiziksel sunucularda ve SQL cluster yapılarında çalışır</li>
+            <li>İmaj ile beraber uygulama tutarlı yedek alır</li>
+            <li>Protection Groups ile birden fazla ajanı tek noktadan yönetirsiniz</li>
+          </ul>
+          <div class="nezaman">Ne zaman: Fiziksel sunucular, Microsoft Failover Cluster için gerekli.</div>
+        </div>
+      </div>
+      <div class="yontem">
+        <div class="no">3</div>
+        <div>
+          <h3>Veeam Plug-in for SQL Server</h3>
+          <div class="meta"><span>Yönetim: DBA</span><span>VSS: Gerekmiyor</span></div>
+          <ul>
+            <li>SQL Server içinden native T-SQL komutlarıyla tetiklenir (full / diff / log)</li>
+            <li>SSMS (SQL Server Management Studio) içinden yönetilir</li>
+            <li>Veeam Backup &amp; Replication'da kataloglama ve raporlama sağlanır</li>
+          </ul>
+          <div class="nezaman">Ne zaman: Kendi DBA ekibi olan ve native araçlardan vazgeçmek istemeyen yapılar için.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4: kapanış -->
+  <section class="kart ortala">
+    <div class="eyebrow">Peki Sizde?</div>
+    <h2 class="buyuk">Kararı Kim<br>Veriyor Sizde?</h2>
+    <p class="altYazi" style="margin-top:10px"><b>Altyapı mı, DBA mı?</b><br>Tek bir doğru yöntem yok. Doğru seçim, ortamınıza ve yönetim modelinize bağlı.</p>
+    <a class="labCagri" href="../#sql-vm-yedekleme">🧪 Ajansız yöntemi uygulamalı dene — SQL VM Yedekleme Lab'ı →</a>
+    <p class="etiketBulut">#Veeam #SQLServer #DataProtection #DBA #Backup</p>
+  </section>
+</div>
+
+<div class="gezin">
+  <button class="okBtn" id="onceki" aria-label="Önceki kart">←</button>
+  <div class="noktalar" id="noktalar"></div>
+  <span class="sayfaNo" id="sayfaNo">1/4</span>
+  <button class="okBtn" id="sonraki" aria-label="Sonraki kart">→</button>
+</div>
+
+<div class="altBilgi">
+  <span id="okumaSayac" hidden>👥 <b id="okumaDeger">—</b> okuma</span>
+  <span>·</span>
+  <a href="sql-backup-karar-rehberi.pdf" target="_blank" rel="noopener">PDF sürümü</a>
+  <span>·</span>
+  <a href="../">Veeam ile Veri Dayanıklılığı Platformu</a>
+</div>
+
+<script>
+"use strict";
+/* ---- karusel ---- */
+const kartlar = [...document.querySelectorAll(".kart")];
+let aktif = Math.min(Math.max((parseInt(location.hash.slice(1), 10) || 1) - 1, 0), kartlar.length - 1);
+const noktaKap = document.getElementById("noktalar");
+kartlar.forEach((_, i) => {
+  const n = document.createElement("button");
+  n.className = "nokta"; n.setAttribute("aria-label", "Kart " + (i + 1));
+  n.onclick = () => git(i);
+  noktaKap.appendChild(n);
+});
+function git(i) {
+  aktif = Math.min(Math.max(i, 0), kartlar.length - 1);
+  kartlar.forEach((k, j) => k.classList.toggle("aktif", j === aktif));
+  noktaKap.querySelectorAll(".nokta").forEach((n, j) => n.classList.toggle("aktif", j === aktif));
+  document.getElementById("sayfaNo").textContent = (aktif + 1) + "/" + kartlar.length;
+  document.getElementById("onceki").disabled = aktif === 0;
+  document.getElementById("sonraki").disabled = aktif === kartlar.length - 1;
+  history.replaceState(null, "", "#" + (aktif + 1));
+}
+document.getElementById("onceki").onclick = () => git(aktif - 1);
+document.getElementById("sonraki").onclick = () => git(aktif + 1);
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") git(aktif - 1);
+  if (e.key === "ArrowRight") git(aktif + 1);
+});
+/* dokunmatik kaydırma */
+let dokunX = null;
+const sahne = document.getElementById("sahne");
+sahne.addEventListener("touchstart", e => { dokunX = e.touches[0].clientX; }, { passive: true });
+sahne.addEventListener("touchend", e => {
+  if (dokunX === null) return;
+  const fark = e.changedTouches[0].clientX - dokunX;
+  if (Math.abs(fark) > 45) git(aktif + (fark < 0 ? 1 : -1));
+  dokunX = null;
+}, { passive: true });
+git(aktif);
+
+/* ---- okuma sayacı (Abacus; günde 1 sayım/tarayıcı, deploy'lar sıfırlamaz) ---- */
+(async () => {
+  const bugun = new Date().toISOString().slice(0, 10);
+  const tip = localStorage.getItem("notSayacGun-sql-karar") === bugun ? "get" : "hit";
+  try {
+    const y = await fetch("https://abacus.jasoncameron.dev/" + tip + "/backup-heroes-bulenttolu/not-sql-karar");
+    const j = await y.json();
+    if (tip === "hit") localStorage.setItem("notSayacGun-sql-karar", bugun);
+    if (typeof j.value === "number") {
+      document.getElementById("okumaDeger").textContent = j.value.toLocaleString("tr-TR");
+      document.getElementById("okumaSayac").hidden = false;
+    }
+  } catch { /* servis yoksa gizli kalır */ }
+})();
+</script>
+</body>
+</html>

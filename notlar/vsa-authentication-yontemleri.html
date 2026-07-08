@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VSA ile Authentication Yöntemleri — Sahadan Notlar</title>
+<meta property="og:title" content="VSA ile Authentication Yöntemleri (v13)">
+<meta property="og:description" content="VSA yalnızca Kerberos ve sertifikayı native konuşur — NTLM kaldırıldı. Neden bu tercih ve Deployment Kit / GIP / Kerberos ile üç kurulum yolu.">
+<style>
+  :root {
+    --vg: #17803f; --vg-koyu: #12662f; --vg-acik: #e7f4ec; --vg-cizgi: #bfe3cd;
+    --sayfa: #eef1f0; --beyaz: #ffffff; --zemin2: #f5f6f6; --cizgi: #d9dcdb;
+    --metin: #1f2428; --soluk: #676e6a; --mavi: #2f80ed;
+    --amber: #b97a08; --amber-a: #fdf3df; --kirmizi: #c9303e; --kirmizi-a: #fdeaec;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--sayfa); color: var(--metin);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    padding: 22px 14px 40px;
+  }
+  .mono { font-family: "Cascadia Code", Consolas, monospace; }
+  a { color: var(--vg); }
+  .ust { width: 100%; max-width: 760px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .geri { text-decoration: none; background: var(--beyaz); border: 1px solid var(--cizgi); color: var(--metin); border-radius: 9px; padding: 8px 15px; font-size: 13.5px; font-weight: 600; }
+  .geri:hover { border-color: var(--vg); color: var(--vg); }
+  .rozetcik { display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; letter-spacing: 1.3px; color: var(--vg); text-transform: uppercase; border: 1px solid var(--vg-cizgi); background: var(--vg-acik); padding: 5px 13px; border-radius: 999px; }
+  .ust .sag { margin-left: auto; display: flex; gap: 10px; align-items: center; font-size: 12.5px; color: var(--soluk); }
+  .ust .sag a { font-weight: 600; }
+
+  .sahne { width: 100%; max-width: 760px; position: relative; }
+  .kart {
+    background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 18px;
+    box-shadow: 0 10px 34px #0f2b1a14; padding: 40px 44px; min-height: 540px;
+    display: none; flex-direction: column;
+  }
+  .kart.aktif { display: flex; animation: gel .3s ease; }
+  @keyframes gel { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .kart.aktif { animation: none; } }
+  .kart .eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--soluk); margin-bottom: 14px; }
+  .kart h2 { font-size: clamp(22px, 3.6vw, 30px); line-height: 1.2; margin-bottom: 12px; text-wrap: balance; }
+  .kart .buyuk { font-size: clamp(30px, 5vw, 42px); line-height: 1.12; }
+  .kart .altYazi { font-size: 15.5px; color: var(--soluk); line-height: 1.7; max-width: 560px; }
+  .kart .altYazi b { color: var(--metin); }
+  .ortala { justify-content: center; text-align: center; align-items: center; }
+  .slogan { margin-top: 26px; font-size: 13px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--vg); }
+
+  .cipSira { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+  .cip { font-size: 13px; font-weight: 700; padding: 7px 16px; border-radius: 999px; background: var(--vg-acik); color: var(--vg); border: 1px solid var(--vg-cizgi); }
+  .cip.gri { background: var(--zemin2); color: var(--soluk); border-color: var(--cizgi); text-decoration: line-through; }
+
+  /* karşılaştırma tablosu */
+  .tabloKaydir { overflow-x: auto; margin-top: 14px; }
+  table.kiyas { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 13px; }
+  .kiyas th, .kiyas td { padding: 10px 12px; border-bottom: 1px solid var(--cizgi); text-align: left; }
+  .kiyas th { font-size: 12px; color: var(--soluk); }
+  .kiyas th b { color: var(--metin); font-size: 13px; display: block; }
+  .kiyas td:first-child { color: var(--soluk); font-weight: 600; }
+  .kiyas .evet { color: var(--vg); font-weight: 700; }
+  .kiyas .hayir { color: var(--kirmizi); font-weight: 700; }
+  .kiyas .notr { color: var(--metin); }
+  .onemliKutu { margin-top: 18px; background: var(--vg-acik); border: 1px solid var(--vg-cizgi); border-left: 4px solid var(--vg); border-radius: 10px; padding: 12px 16px; font-size: 13.5px; line-height: 1.6; color: #1d4c30; }
+  .refSatir { margin-top: auto; padding-top: 16px; font-size: 11.5px; color: #9aa39e; word-break: break-all; }
+  .refSatir a { color: #7d8a83; }
+
+  /* zaman çizgisi */
+  .zaman { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+  .durak { background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 11px; padding: 13px 14px; }
+  .durak .yil { font-size: 16px; font-weight: 800; color: var(--vg); margin-bottom: 5px; font-variant-numeric: tabular-nums; }
+  .durak p { font-size: 12px; color: #3a423d; line-height: 1.55; }
+  .hataKutu { margin-top: 18px; background: #101613; border: 1px solid #223328; border-radius: 11px; padding: 13px 16px; font-family: "Cascadia Code", Consolas, monospace; font-size: 12px; line-height: 1.8; color: #e08a93; }
+  .hataKutu .baslikH { color: #93a89b; font-size: 10.5px; letter-spacing: 1.2px; text-transform: uppercase; font-family: "Segoe UI", sans-serif; margin-bottom: 4px; }
+  .hataKutu small { display: block; color: #6d7f75; font-family: "Segoe UI", sans-serif; font-size: 11px; margin-top: 6px; }
+  .dogruYol { margin-top: 14px; font-size: 13.5px; font-weight: 700; color: var(--vg); }
+
+  /* 3 yol */
+  .yollar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+  .yol { background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 13px; padding: 15px 15px; display: flex; flex-direction: column; }
+  .yol .no { width: 27px; height: 27px; border-radius: 50%; background: var(--vg); color: #fff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; margin-bottom: 9px; }
+  .yol h3 { font-size: 14.5px; margin-bottom: 3px; }
+  .yol .tur { font-size: 11px; font-weight: 700; color: var(--soluk); margin-bottom: 10px; }
+  .yol ol { list-style: none; counter-reset: adim; font-size: 12px; color: #3a423d; line-height: 1.5; display: flex; flex-direction: column; gap: 7px; }
+  .yol ol li { counter-increment: adim; display: flex; gap: 7px; }
+  .yol ol li::before { content: counter(adim); flex-shrink: 0; width: 17px; height: 17px; border-radius: 50%; background: var(--beyaz); border: 1px solid var(--vg-cizgi); color: var(--vg); font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin-top: 1px; }
+
+  /* karar ağacı */
+  .agac { display: flex; flex-direction: column; align-items: center; margin-top: 16px; }
+  .kutu { background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 700; text-align: center; }
+  .kutu.kok { background: var(--vg); color: #fff; border-color: var(--vg-koyu); font-size: 14px; }
+  .kutu.sonuc { background: var(--vg-acik); border-color: var(--vg-cizgi); color: var(--vg); }
+  .kutu small { display: block; font-weight: 400; font-size: 11px; color: var(--soluk); margin-top: 3px; }
+  .kutu.sonuc small { color: #4c8a63; }
+  .ok { color: #a7b0ab; font-size: 15px; padding: 2px 0; }
+  .soru { font-size: 11.5px; color: var(--soluk); font-weight: 600; padding: 3px 0; }
+  .dallar { display: grid; grid-template-columns: 1fr 1.4fr; gap: 16px; width: 100%; }
+  .dal { display: flex; flex-direction: column; align-items: center; }
+  .ikiSonuc { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+  .ikiSonuc .kutu { width: 100%; padding: 9px 6px; }
+
+  /* gezinme */
+  .gezin { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+  .okBtn { cursor: pointer; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--cizgi); background: var(--beyaz); color: var(--metin); font-size: 17px; display: flex; align-items: center; justify-content: center; transition: border-color .12s, color .12s; }
+  .okBtn:hover:not(:disabled) { border-color: var(--vg); color: var(--vg); }
+  .okBtn:disabled { opacity: .35; cursor: default; }
+  .noktalar { display: flex; gap: 7px; }
+  .nokta { width: 9px; height: 9px; border-radius: 50%; background: #c8cdcb; border: none; cursor: pointer; padding: 0; }
+  .nokta.aktif { background: var(--vg); width: 22px; border-radius: 999px; }
+  .sayfaNo { font-size: 12.5px; color: var(--soluk); font-variant-numeric: tabular-nums; min-width: 40px; text-align: center; }
+
+  .altBilgi { margin-top: 20px; display: flex; gap: 14px; align-items: center; font-size: 12.5px; color: var(--soluk); flex-wrap: wrap; justify-content: center; }
+  .altBilgi b { color: var(--metin); }
+  :focus-visible { outline: 2px solid var(--mavi); outline-offset: 2px; }
+
+  @media (max-width: 680px) {
+    .kart { padding: 26px 20px; min-height: 500px; }
+    .yollar { grid-template-columns: 1fr; }
+    .zaman { grid-template-columns: 1fr; }
+    .dallar { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ust">
+  <a class="geri" href="../">← Platform</a>
+  <span class="rozetcik">Sahadan Notlar · VSA · v13</span>
+  <span class="sag"><a href="vsa-authentication-yontemleri.pdf" target="_blank" rel="noopener">PDF indir ⇩</a></span>
+</div>
+
+<div class="sahne" id="sahne">
+
+  <!-- 1: kapak -->
+  <section class="kart ortala aktif">
+    <div class="eyebrow">VSA · v13</div>
+    <h2 class="buyuk">VSA ile<br>Authentication<br>Yöntemleri</h2>
+    <div class="cipSira">
+      <span class="cip">🎫 Kerberos</span>
+      <span class="cip">📜 Sertifika</span>
+      <span class="cip gri">NTLM</span>
+    </div>
+    <p class="altYazi" style="margin-top:18px">VSA yalnızca bu iki yöntemi native konuşur — <b>NTLM kaldırıldı.</b></p>
+    <div class="slogan">Pre-built. Pre-hardened. Predictable.</div>
+  </section>
+
+  <!-- 2: karşılaştırma -->
+  <section class="kart">
+    <div class="eyebrow">Temel · Auth Yöntemleri</div>
+    <h2>Authentication yöntemleri</h2>
+    <div class="tabloKaydir">
+      <table class="kiyas">
+        <thead>
+          <tr><th></th><th>🎫 <b>Kerberos</b></th><th>📜 <b>Sertifika</b> Deployment Kit</th><th>🔑 <b>user:pwd</b> NTLM</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>VSA'da native mi?</td><td class="evet">Evet</td><td class="evet">Evet</td><td class="hayir">Hayır — GIP ile</td></tr>
+          <tr><td>Domain gerekli mi?</td><td class="notr">Evet</td><td class="notr">Hayır</td><td class="notr">Hayır</td></tr>
+          <tr><td>Parola saklanır mı?</td><td class="evet">Hayır</td><td class="evet">Hayır</td><td class="hayir">Evet</td></tr>
+          <tr><td>Kurduğu bileşen</td><td class="notr">Non-persistent</td><td class="notr">Persistent</td><td class="notr">Non-persistent</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="onemliKutu"><b>VSA'da NTLM yok.</b> Yalnızca Kerberos ve sertifika native konuşulur — bu bir güvenlik tasarım kararıdır.</div>
+    <div class="refSatir">Ref: <a href="https://helpcenter.veeam.com/docs/vbr/userguide/windows_server_credentials.html" target="_blank" rel="noopener">helpcenter.veeam.com — windows_server_credentials</a></div>
+  </section>
+
+  <!-- 3: neden -->
+  <section class="kart">
+    <div class="eyebrow">Mimari · Neden Bu Tercih?</div>
+    <h2>VSA neden NTLM yerine Kerberos ve sertifikayı tercih ediyor?</h2>
+    <p class="altYazi" style="font-size:13.5px">Bu bir kısıtlama değil, geleceğe dönük bir güvenlik kararı — Microsoft'un kendi yol haritası da aynı yönü gösteriyor.</p>
+    <div class="zaman">
+      <div class="durak"><div class="yil">2024</div><p>NTLM resmi olarak <b>deprecated</b> — güncelleme almıyor</p></div>
+      <div class="durak"><div class="yil">2026 · Win Server</div><p>IAKerb + Local KDC ile Kerberos, NTLM fallback ihtiyacını kaldırıyor</p></div>
+      <div class="durak"><div class="yil">Sonraki · H2</div><p>Network NTLM varsayılan <b>kapalı</b>; açmak elle policy ister</p></div>
+    </div>
+    <div class="hataKutu">
+      <div class="baslikH">Hata Metni — doğru yöntem yapılandırılmazsa</div>
+      NT_STATUS_INVALID_PARAMETER — session setup failed<br>
+      Failed to connect via Administrative share<br>
+      Failed to write to admin share (Samba)
+      <small>Gerçek ekran — Add Protection Group / Test Connection</small>
+    </div>
+    <div class="dogruYol">✔ Doğru yol: Deployment Kit (sertifika) veya Kerberos ile bağlan — passwordless ve güvenli →</div>
+    <div class="refSatir">Ref: <a href="https://helpcenter.veeam.com/docs/vbr/userguide/kerberos_authentication.html" target="_blank" rel="noopener">helpcenter.veeam.com — kerberos_authentication</a></div>
+  </section>
+
+  <!-- 4: 3 yol -->
+  <section class="kart">
+    <div class="eyebrow">Yollar · Nasıl Kurulur</div>
+    <h2>Uygulamada 3 yol</h2>
+    <div class="yollar">
+      <div class="yol">
+        <div class="no">1</div>
+        <h3>Deployment Kit</h3>
+        <div class="tur">Sertifika · Persistent</div>
+        <ol>
+          <li>Console → Backup Infrastructure → Managed Servers</li>
+          <li>"Create Veeam Deployment Kit" → klasör seç</li>
+          <li>Kiti hedefe kopyala, InstallDeploymentKit.bat çalıştır</li>
+          <li>Sunucuyu sertifika bazlı ekle</li>
+        </ol>
+      </div>
+      <div class="yol">
+        <div class="no">2</div>
+        <h3>Guest Int. Proxy</h3>
+        <div class="tur">NTLMv2 köprüsü · Non-persistent</div>
+        <ol>
+          <li>Domainde bir Windows sunucu kur</li>
+          <li>Managed Servers'a ekle</li>
+          <li>Job → Guest Processing'de GIP olarak ata</li>
+          <li>username:password ile devam et</li>
+        </ol>
+      </div>
+      <div class="yol">
+        <div class="no">3</div>
+        <h3>Kerberos</h3>
+        <div class="tur">Kerberos · Non-persistent</div>
+        <ol>
+          <li>VSA'yı domaine al</li>
+          <li>FQDN / DNS / SPN / zaman senkronu hazır olsun</li>
+          <li>Sunucuyu credential ile ekle (Kerberos)</li>
+        </ol>
+      </div>
+    </div>
+    <div class="refSatir">Ref: <a href="https://helpcenter.veeam.com/docs/vbr/userguide/deployment_kit.html" target="_blank" rel="noopener">deployment_kit</a> · <a href="https://helpcenter.veeam.com/docs/vbr/userguide/guest_interaction_proxy.html" target="_blank" rel="noopener">guest_interaction_proxy</a></div>
+  </section>
+
+  <!-- 5: karar ağacı -->
+  <section class="kart">
+    <div class="eyebrow">Karar · Hangi Yol</div>
+    <h2>Karar ağacı</h2>
+    <div class="agac">
+      <div class="kutu kok">VSA domaine üye mi?</div>
+      <div class="ok">↓</div>
+      <div class="dallar">
+        <div class="dal">
+          <div class="soru">Evet</div>
+          <div class="ok">↓</div>
+          <div class="kutu sonuc">Kerberos<small>native, sorunsuz çalışır</small></div>
+        </div>
+        <div class="dal">
+          <div class="soru">Hayır — Workgroup</div>
+          <div class="kutu">App-aware processing gerekli mi?</div>
+          <div class="soru">Hayır ↓</div>
+          <div class="kutu" style="margin-bottom:8px">Crash-consistent yeterli</div>
+          <div class="soru">Evet ↓ Ölçek nedir?</div>
+          <div class="ikiSonuc">
+            <div class="dal">
+              <div class="kutu sonuc">Deployment Kit<small>kritik / tekil sunucu</small></div>
+            </div>
+            <div class="dal">
+              <div class="kutu sonuc">GIP<small>çok VM / çoklu site</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="refSatir">Ref: <a href="https://helpcenter.veeam.com/docs/vbr/userguide/system_requirements_via.html" target="_blank" rel="noopener">system_requirements_via</a></div>
+  </section>
+
+  <!-- 6: kapanış -->
+  <section class="kart ortala">
+    <div class="eyebrow">Kapanış</div>
+    <h2 class="buyuk">Seçim sizin,<br>mimari daha güçlü</h2>
+    <p class="altYazi" style="margin-top:12px">Kerberos, sertifika veya GIP — hangi yolu seçerseniz seçin, VSA ile authentication daha güçlü ve daha güvenli.</p>
+    <div class="cipSira">
+      <span class="cip">🎫 Kerberos</span>
+      <span class="cip">📜 Sertifika</span>
+      <span class="cip">🔗 GIP</span>
+    </div>
+    <div class="slogan">Pre-built. Pre-hardened. Predictable.</div>
+  </section>
+</div>
+
+<div class="gezin">
+  <button class="okBtn" id="onceki" aria-label="Önceki kart">←</button>
+  <div class="noktalar" id="noktalar"></div>
+  <span class="sayfaNo" id="sayfaNo">1/6</span>
+  <button class="okBtn" id="sonraki" aria-label="Sonraki kart">→</button>
+</div>
+
+<div class="altBilgi">
+  <span id="okumaSayac" hidden>👥 <b id="okumaDeger">—</b> okuma</span>
+  <span>·</span>
+  <a href="vsa-authentication-yontemleri.pdf" target="_blank" rel="noopener">PDF sürümü</a>
+  <span>·</span>
+  <a href="../">Veeam ile Veri Dayanıklılığı Platformu</a>
+</div>
+
+<script>
+"use strict";
+/* ---- karusel ---- */
+const kartlar = [...document.querySelectorAll(".kart")];
+let aktif = Math.min(Math.max((parseInt(location.hash.slice(1), 10) || 1) - 1, 0), kartlar.length - 1);
+const noktaKap = document.getElementById("noktalar");
+kartlar.forEach((_, i) => {
+  const n = document.createElement("button");
+  n.className = "nokta"; n.setAttribute("aria-label", "Kart " + (i + 1));
+  n.onclick = () => git(i);
+  noktaKap.appendChild(n);
+});
+function git(i) {
+  aktif = Math.min(Math.max(i, 0), kartlar.length - 1);
+  kartlar.forEach((k, j) => k.classList.toggle("aktif", j === aktif));
+  noktaKap.querySelectorAll(".nokta").forEach((n, j) => n.classList.toggle("aktif", j === aktif));
+  document.getElementById("sayfaNo").textContent = (aktif + 1) + "/" + kartlar.length;
+  document.getElementById("onceki").disabled = aktif === 0;
+  document.getElementById("sonraki").disabled = aktif === kartlar.length - 1;
+  history.replaceState(null, "", "#" + (aktif + 1));
+}
+document.getElementById("onceki").onclick = () => git(aktif - 1);
+document.getElementById("sonraki").onclick = () => git(aktif + 1);
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") git(aktif - 1);
+  if (e.key === "ArrowRight") git(aktif + 1);
+});
+/* dokunmatik kaydırma */
+let dokunX = null;
+const sahne = document.getElementById("sahne");
+sahne.addEventListener("touchstart", e => { dokunX = e.touches[0].clientX; }, { passive: true });
+sahne.addEventListener("touchend", e => {
+  if (dokunX === null) return;
+  const fark = e.changedTouches[0].clientX - dokunX;
+  if (Math.abs(fark) > 45) git(aktif + (fark < 0 ? 1 : -1));
+  dokunX = null;
+}, { passive: true });
+git(aktif);
+
+/* ---- okuma sayacı (Abacus; günde 1 sayım/tarayıcı, deploy'lar sıfırlamaz) ---- */
+(async () => {
+  const bugun = new Date().toISOString().slice(0, 10);
+  const tip = localStorage.getItem("notSayacGun-vsa-auth") === bugun ? "get" : "hit";
+  try {
+    const y = await fetch("https://abacus.jasoncameron.dev/" + tip + "/backup-heroes-bulenttolu/not-vsa-auth");
+    const j = await y.json();
+    if (tip === "hit") localStorage.setItem("notSayacGun-vsa-auth", bugun);
+    if (typeof j.value === "number") {
+      document.getElementById("okumaDeger").textContent = j.value.toLocaleString("tr-TR");
+      document.getElementById("okumaSayac").hidden = false;
+    }
+  } catch { /* servis yoksa gizli kalır */ }
+})();
+</script>
+</body>
+</html>
