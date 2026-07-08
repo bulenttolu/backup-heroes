@@ -622,7 +622,7 @@
         <div class="heroYazi">
           <div class="heroEyebrow">Heroes Start Here</div>
           <h1>Veeam ile <em>Veri Dayanıklılığı</em> Bilgi Platformu</h1>
-          <p class="heroAlt">Gündem, gerçek Veeam web arayüzünde <b>interaktif lab simülasyonları</b> ve sahadan damıtılmış notlar — ezberden değil, uygulayarak.</p>
+          <p class="heroAlt">Gündem, gerçek Veeam arayüzlerine benzer ekranlarda <b>interaktif lab simülasyonları</b> ve sahadan damıtılmış notlar — ezberden değil, uygulayarak.</p>
           <div class="heroBtnlar">
             <button class="btnP" onclick="labAc()">Lab'ı Başlat →</button>
             <a class="btnHayalet" href="#sahadan">Notları Keşfet</a>
@@ -633,10 +633,10 @@
           </div>
         </div>
         <div class="ucanAlan" aria-label="Yeni içerikler">
-          <a class="ucanKart" href="#simulasyon" style="top:4%; left:4%; animation-delay:0s">
-            <small>YENİ · LAB 01</small>
-            <b>SQL VM Ajansız Yedekleme</b>
-            <span class="altS">Gerçek VBR arayüzünde, puanlı →</span>
+          <a class="ucanKart" href="lab-kurtarma.html" style="top:4%; left:4%; animation-delay:0s">
+            <small>YENİ · LAB 02</small>
+            <b>Kurtarma: O Veritabanını Geri Getir</b>
+            <span class="altS">Point-in-time ile felaketten dönüş →</span>
           </a>
           <a class="ucanKart" href="#haberler" style="top:36%; right:0; animation-delay:-2.4s">
             <small>GÜNDEM · 2026-07</small>
@@ -668,7 +668,7 @@
       <div class="bolumUst">
         <span class="bolumNo">02</span>
         <h2 class="fSerif">İnteraktif Lablar</h2>
-        <span class="altB">Gerçek arayüzde, puanlı simülasyon</span>
+        <span class="altB">Gerçek arayüze benzer arayüzlerle, puanlı simülasyon</span>
       </div>
       <div class="bolumCizgi"></div>
       <div class="labKartlar">
@@ -680,7 +680,7 @@
           </div>
           <div class="labIcX">
             <h3>SQL VM Ajansız Yedekleme</h3>
-            <p>Ajan kurmadan, uygulama tutarlı bir yedekleme görevi oluştur. Gerçek "New Backup Job" sihirbazının birebir simülasyonu; sonunda veri akışını canlı izle.</p>
+            <p>Ajan kurmadan, uygulama tutarlı bir yedekleme görevi oluştur. "New Backup Job" sihirbazının gerçeğine benzer simülasyonu; sonunda veri akışını canlı izle.</p>
             <div class="labMetaX">
               <span>~5 DK</span>
               <span>100 PUAN</span>
@@ -689,16 +689,21 @@
             <button class="btnP" onclick="event.stopPropagation(); labAc()">Lab'ı Başlat →</button>
           </div>
         </article>
-        <article class="labKart yakinda" aria-disabled="true">
+        <article class="labKart" onclick="location.href='lab-kurtarma.html'" role="button" tabindex="0" onkeydown="if(event.key==='Enter')location.href='lab-kurtarma.html'">
           <div class="labGorselKap">
-            <img src="gorseller/lab-kurtarma-yakinda.png" alt="Kurtarma lab'ı önizlemesi" loading="lazy">
-            <span class="labRozetX">LAB 02 · YAKINDA</span>
+            <img src="gorseller/lab-kurtarma.png" alt="Restore Wizard — Specify restore point ekranı: point-in-time kaydırıcısı" loading="lazy" style="object-position: top center; background:#fff">
+            <span class="labRozetX">LAB 02 · VEEAM EXPLORER</span>
+            <span class="labOynat">▶</span>
           </div>
           <div class="labIcX">
             <h3>Kurtarma: O Veritabanını Geri Getir</h3>
-            <p>Silinen SQL veritabanını point-in-time kurtarma ile geri getir. Instant Recovery ve granüler kurtarma seçenekleri — hazırlık aşamasında.</p>
-            <div class="labMetaX"><span>YAKINDA</span></div>
-            <button class="btnP" disabled style="opacity:.45; cursor:default">Hazırlanıyor…</button>
+            <p>14:32'de biri Siparisler tablosunu sildi! Point-in-time kurtarma ile SatisDB'yi felaketten 2 dakika öncesine döndür — Lab 01'de aldığın log yedekleri şimdi hayat kurtaracak.</p>
+            <div class="labMetaX">
+              <span>~5 DK</span>
+              <span>100 PUAN</span>
+              <span id="labSayacKart2" hidden>👥 —</span>
+            </div>
+            <a class="btnP" href="lab-kurtarma.html" onclick="event.stopPropagation()">Lab'ı Başlat →</a>
           </div>
         </article>
       </div>
@@ -781,7 +786,7 @@
     <div class="kartAcik" id="labGiris">
       <span class="rozetcik"><span class="dot"></span> Görev Brifingi</span>
       <h2>İlk SQL Yedekleme Görevini Oluştur</h2>
-      <p class="alt">Üretim SQL sunucusu <b class="mono">SQL-PROD-01</b> henüz yedeklenmiyor. Veeam Backup &amp; Replication <b>web konsoluna</b> bağlanacak ve gerçek arayüzün birebir kopyasında bir yedekleme görevi yazacaksın. Her adımda eğitmen paneli <b>neden</b> o seçimi yaptığımızı anlatır; doğru seçimler puan kazandırır, tuzaklar puan kaybettirir.</p>
+      <p class="alt">Üretim SQL sunucusu <b class="mono">SQL-PROD-01</b> henüz yedeklenmiyor. Veeam Backup &amp; Replication <b>web konsolunun benzeri</b> bir arayüzde yedekleme görevi yazacaksın. Her adımda eğitmen paneli <b>neden</b> o seçimi yaptığımızı anlatır; doğru seçimler puan kazandırır, tuzaklar puan kaybettirir.</p>
       <div class="ozet">
         <div><b>6</b><span>Sihirbaz Adımı</span></div>
         <div><b>~5 dk</b><span>Tahmini Süre</span></div>
@@ -1157,15 +1162,31 @@ let notOkumaToplam = 0;
   } catch { /* servis erişilemezse sayaç sessizce gizli kalır */ }
 })();
 
-/* lab başına sayaç: lab'ı kaç kişi başlattı */
+/* lab başına sayaç: lab'ı kaç kişi başlattı (hero istatistiği = iki lab'ın toplamı) */
+const labSayilar = { l1: 0, l2: 0 };
+function labStatGuncelle() { sayacCanlandir("statLab", labSayilar.l1 + labSayilar.l2); }
 function labSayacGoster(deger) {
   const metin = (deger ?? 0).toLocaleString("tr-TR");
   const kart = document.getElementById("labSayacKart");
   kart.textContent = "👥 " + metin + " başlatma"; kart.hidden = false;
   const ust = document.getElementById("labSayacUst");
   ust.innerHTML = "👥 <b>" + metin + "</b>"; ust.hidden = false;
-  sayacCanlandir("statLab", deger ?? 0);
+  labSayilar.l1 = deger ?? 0;
+  labStatGuncelle();
 }
+(async function lab2SayacYukle() {
+  try {
+    const y = await fetch("https://abacus.jasoncameron.dev/get/backup-heroes-bulenttolu/lab-kurtarma");
+    const j = await y.json();
+    if (typeof j.value === "number") {
+      const e = document.getElementById("labSayacKart2");
+      e.textContent = "👥 " + j.value.toLocaleString("tr-TR") + " başlatma";
+      e.hidden = false;
+      labSayilar.l2 = j.value;
+      labStatGuncelle();
+    }
+  } catch { /* servis yoksa gizli kalır */ }
+})();
 async function labSayac(tip) {
   try {
     const y = await fetch("https://abacus.jasoncameron.dev/" + tip + "/backup-heroes-bulenttolu/lab-sql-vm-yedekleme");

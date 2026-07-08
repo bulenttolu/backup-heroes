@@ -9,7 +9,7 @@
 | # | Lab | Durum |
 |---|-----|-------|
 | 1 | SQL VM Ajansız Yedekleme (Agentless Backup) — New Backup Job sihirbazı + veri akışı animasyonu | ✅ Yayında |
-| 2 | Kurtarma: O Veritabanını Geri Getir | 🔜 Yakında |
+| 2 | [Kurtarma: O Veritabanını Geri Getir](lab-kurtarma.html) — Restore Wizard, point-in-time kaydırıcısı + log replay animasyonu | ✅ Yayında |
 | 3 | 3-2-1-1-0 Kuralı ve Kopya Görevleri | 🔜 Yakında |
 | 4 | Fidye Yazılımına Karşı Değişmez Yedek | 🔜 Yakında |
 

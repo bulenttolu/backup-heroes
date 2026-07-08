@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 02 — Kurtarma: O Veritabanını Geri Getir</title>
+<meta property="og:title" content="Lab 02 — Kurtarma: O Veritabanını Geri Getir">
+<meta property="og:description" content="Silinen SQL veritabanını Veeam Explorer for Microsoft SQL Server ile point-in-time kurtar. Gerçek arayüzde interaktif lab.">
+<style>
+  :root {
+    --vg-bar: #17843f; --vg: #17803f; --vg-koyu: #12662f; --vg-acik: #e7f4ec; --vg-cizgi: #bfe3cd;
+    --sayfa: #eef1f0; --beyaz: #ffffff; --zemin2: #f5f6f6; --cizgi: #d9dcdb;
+    --metin: #1f2428; --soluk: #676e6a; --mavi: #2f80ed;
+    --amber: #b97a08; --amber-a: #fdf3df; --kirmizi: #c9303e; --kirmizi-a: #fdeaec;
+    --silindir: #e8a33d; /* Explorer'ın turuncu veritabanı ikonları */
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: var(--sayfa); color: var(--metin); padding: 26px 16px 60px; }
+  .mono { font-family: "Cascadia Code", Consolas, monospace; }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  button { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--mavi); outline-offset: 2px; }
+
+  .rozetcik { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: 1.4px; color: var(--vg); text-transform: uppercase; border: 1px solid var(--vg-cizgi); background: var(--vg-acik); padding: 6px 14px; border-radius: 999px; }
+  .rozetcik .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: nabiz 1.8s infinite; }
+  @keyframes nabiz { 0%,100% { box-shadow: 0 0 0 0 #17803f44; } 50% { box-shadow: 0 0 0 7px #17803f00; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01s !important; transition-duration: .01s !important; } }
+
+  .btnP { display: inline-block; cursor: pointer; border: 1px solid var(--vg-koyu); border-radius: 8px; font-size: 15px; font-weight: 600; padding: 11px 26px; color: #fff; background: var(--vg); transition: background .12s, transform .12s; text-decoration: none; }
+  .btnP:hover:not(:disabled) { background: var(--vg-koyu); transform: translateY(-1px); }
+
+  .labArac { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+  .geri { cursor: pointer; text-decoration: none; background: var(--beyaz); border: 1px solid var(--cizgi); color: var(--metin); border-radius: 9px; padding: 8px 16px; font-size: 14px; font-weight: 600; }
+  .geri:hover { border-color: var(--vg); color: var(--vg); }
+  .puanKutu { font-size: 12.5px; color: var(--soluk); background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 999px; padding: 7px 16px; }
+  .puanKutu b { color: var(--vg); font-size: 17px; font-variant-numeric: tabular-nums; }
+
+  .kartAcik { background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 16px; padding: 30px; box-shadow: 0 4px 18px #0f2b1a0f; }
+  #labGiris h2 { font-size: clamp(24px, 4vw, 32px); margin: 14px 0 10px; text-wrap: balance; }
+  #labGiris .alt { color: var(--soluk); font-size: 15.5px; line-height: 1.7; max-width: 680px; margin-bottom: 18px; }
+  #labGiris .alt b { color: var(--metin); }
+  .alarmKutu { background: var(--kirmizi-a); border: 1px solid #efc3c8; border-left: 4px solid var(--kirmizi); border-radius: 12px; padding: 14px 18px; font-size: 14px; line-height: 1.7; color: #7c2830; max-width: 680px; margin-bottom: 16px; }
+  .yolKutu { background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 12px; padding: 12px 16px; font-size: 13px; line-height: 1.7; color: var(--soluk); max-width: 680px; margin-bottom: 20px; }
+  .yolKutu b { color: var(--metin); }
+  .ozet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; max-width: 620px; }
+  .ozet div { background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 12px; padding: 14px; text-align: center; }
+  .ozet b { display: block; font-size: 20px; color: var(--vg); }
+  .ozet span { font-size: 12.5px; color: var(--soluk); }
+
+  /* ================= VEEAM EXPLORER PENCERESİ (masaüstü uygulaması) ================= */
+  .masaustu { border: 1px solid var(--cizgi); border-radius: 10px; overflow: hidden; background: var(--beyaz); box-shadow: 0 10px 34px #0f2b1a1c; }
+  .masaKaydir { overflow-x: auto; }
+  .masaIc { min-width: 880px; position: relative; }
+  .baslikCubugu { display: flex; align-items: center; gap: 10px; background: var(--vg-bar); color: #fff; padding: 9px 14px; font-size: 13px; }
+  .baslikCubugu .ikonB { font-size: 14px; opacity: .9; }
+  .baslikCubugu .ortaBaslik { flex: 1; text-align: center; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .baslikCubugu .pencereDugme { display: flex; gap: 14px; font-size: 13px; opacity: .95; }
+  .sekmeSatir { display: flex; align-items: center; gap: 2px; background: var(--beyaz); border-bottom: 1px solid var(--cizgi); padding: 4px 10px 0; }
+  .sekmeSatir .menuIkon { padding: 6px 10px; color: var(--soluk); }
+  .sekmeE { padding: 7px 16px 8px; font-size: 13.5px; color: var(--metin); border-radius: 6px 6px 0 0; }
+  .sekmeE.aktifE { background: var(--vg); color: #fff; font-weight: 600; }
+
+  /* ribbon */
+  .ribbon { display: flex; align-items: stretch; gap: 0; background: var(--zemin2); border-bottom: 1px solid var(--cizgi); padding: 8px 12px 4px; }
+  .ribbonGrup { display: flex; flex-direction: column; align-items: center; padding: 0 12px; border-right: 1px solid var(--cizgi); }
+  .ribbonGrup:last-child { border-right: none; }
+  .ribbonDugmeler { display: flex; gap: 4px; }
+  .ribbonBtn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 1px solid transparent; border-radius: 7px; padding: 6px 10px 4px; font-size: 11.5px; color: var(--metin); cursor: default; line-height: 1.25; text-align: center; }
+  .ribbonBtn.tiklanir { cursor: pointer; }
+  .ribbonBtn.tiklanir:hover { background: var(--vg-acik); border-color: var(--vg-cizgi); }
+  .ribbonBtn.parlak { background: #fff; border-color: var(--vg-cizgi); box-shadow: 0 0 0 2px #17803f22; animation: nabiz 2.2s infinite; }
+  .ribbonGrup .grupAd { font-size: 10px; color: var(--soluk); padding: 3px 0 2px; }
+  .silindirIkon { width: 26px; height: 26px; }
+
+  /* gövde: sol ağaç + sağ bilgi */
+  .exGovde { display: grid; grid-template-columns: 250px 1fr; min-height: 380px; background: var(--beyaz); }
+  .agacPanel { border-right: 1px solid var(--cizgi); }
+  .agacBaslik { font-size: 12.5px; font-weight: 600; color: var(--soluk); padding: 10px 14px; border-bottom: 1px solid var(--cizgi); }
+  .agacIc { padding: 10px 8px; font-size: 13px; }
+  .agacSatir { display: flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: 6px; color: var(--metin); }
+  .agacSatir.dugum { color: var(--soluk); }
+  .agacSatir.db { cursor: pointer; }
+  .agacSatir.db:hover { background: var(--zemin2); }
+  .agacSatir.db.seciliDb { background: var(--vg-acik); outline: 1px solid var(--vg-cizgi); font-weight: 600; }
+  .agacSatir.db.hataliDb { background: var(--kirmizi-a); animation: salla .35s; }
+  .agacGirinti1 { padding-left: 22px; }
+  .agacGirinti2 { padding-left: 40px; }
+  @keyframes salla { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+  .bilgiPanel { padding: 18px 24px; }
+  .bilgiPanel h3 { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
+  .bilgiTablo { font-size: 13.5px; border-collapse: collapse; }
+  .bilgiTablo td { padding: 6px 0; }
+  .bilgiTablo td:first-child { color: var(--soluk); width: 150px; }
+  .bilgiTablo td b.yesilD { color: var(--vg); }
+  .dosyaLink { margin-top: 14px; font-size: 12.5px; }
+  .dosyaLink .lbl { color: var(--mavi); display: block; margin-top: 8px; }
+  .dosyaLink .yol { font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px; color: var(--metin); }
+  .bosBilgi { color: var(--soluk); font-size: 13.5px; padding: 30px 0; text-align: center; }
+  .durumCubugu { display: flex; align-items: center; justify-content: flex-end; background: var(--vg-bar); color: #fff; padding: 5px 14px; font-size: 11px; letter-spacing: 2px; font-weight: 700; }
+
+  /* restore menüsü (dropdown) */
+  .exMenu { position: absolute; z-index: 12; background: #fff; border: 1px solid var(--cizgi); border-radius: 8px; box-shadow: 0 14px 40px #0f2b1a30; padding: 5px; min-width: 330px; display: none; }
+  .exMenu.acikM { display: block; }
+  .exMenuOge { display: flex; align-items: center; gap: 9px; padding: 8px 12px; font-size: 13px; border-radius: 6px; cursor: pointer; }
+  .exMenuOge:hover { background: var(--vg-acik); }
+  .exMenuOge .mIkon { width: 17px; text-align: center; }
+  .exMenuOge .okSag { margin-left: auto; color: var(--soluk); font-size: 12px; }
+  #anaMenu { min-width: 220px; }
+
+  /* Databases restore summary dialogu (gerçek ekranla birebir) */
+  .ozetBaslikY { display: flex; gap: 14px; align-items: center; padding: 16px 22px; border-bottom: 1px solid var(--cizgi); }
+  .yesilTik { width: 40px; height: 40px; border-radius: 50%; background: #3cb054; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 21px; flex-shrink: 0; }
+  .ozetBaslikY h4 { font-size: 16.5px; font-weight: 600; }
+  .ozetBaslikY small { display: block; font-size: 12.5px; color: var(--soluk); font-weight: 400; margin-top: 2px; }
+  .ozetTabloY { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ozetTabloY th { text-align: left; color: var(--mavi); font-weight: 400; font-size: 12.5px; padding: 9px 22px; border-bottom: 1px solid var(--cizgi); }
+  .ozetTabloY td { padding: 10px 22px; background: var(--zemin2); }
+  .ozetAltY { display: flex; align-items: center; gap: 18px; padding: 12px 22px; border-top: 1px solid var(--cizgi); margin-top: 120px; font-size: 12.5px; color: var(--metin); }
+  .ozetAltY label { display: flex; align-items: center; gap: 6px; }
+  .ozetAltY input { accent-color: #3cb054; }
+  .ozetAltY .gorAz { color: var(--soluk); }
+
+  /* dialoglar (Restore Wizard) */
+  .ortu { position: absolute; inset: 0; background: #1f242855; z-index: 15; display: none; }
+  .ortu.acikO { display: block; }
+  .dialog { position: absolute; top: 34px; left: 50%; transform: translateX(-50%); width: 620px; max-width: 94%; background: #fff; border: 1px solid #b8bdbb; border-radius: 4px; box-shadow: 0 24px 60px #0f2b1a4d; z-index: 16; display: none; }
+  .dialog.acikD { display: block; }
+  .dialogBaslik { position: relative; text-align: center; font-size: 13px; font-weight: 600; padding: 10px 0; border-bottom: 1px solid var(--cizgi); }
+  .dialogBaslik .kapatX { position: absolute; right: 12px; top: 8px; cursor: pointer; background: none; border: none; font-size: 14px; color: var(--soluk); }
+  .dialogIc { padding: 20px 26px; }
+  .dialogIc h4 { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
+  .dialogIc .soru { font-size: 13.5px; margin-bottom: 12px; }
+  .dialogAlt { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px 18px; }
+  .btnDlg { cursor: pointer; background: #fff; border: 1px solid #b8bdbb; border-radius: 4px; font-size: 13.5px; padding: 8px 26px; }
+  .btnDlg:hover { border-color: var(--metin); }
+  .btnDlg.birincil { border-color: var(--vg); box-shadow: 0 0 0 1px var(--vg); }
+
+  .radyoDuz { display: flex; align-items: flex-start; gap: 9px; margin: 0 0 12px; cursor: pointer; font-size: 13.5px; }
+  .radyoDuz input { margin-top: 2px; accent-color: var(--vg); }
+  .radyoDuz small { display: block; color: var(--soluk); font-size: 12px; margin-top: 2px; }
+  .pitKutu { border: 1px solid var(--cizgi); border-radius: 8px; padding: 14px 16px; margin: 2px 0 14px 24px; background: var(--zemin2); }
+  .pitUclar { display: flex; justify-content: space-between; font-family: "Cascadia Code", Consolas, monospace; font-size: 11px; color: var(--soluk); margin-bottom: 6px; }
+  .pitKutu input[type="range"] { width: 100%; accent-color: var(--vg); cursor: pointer; }
+  .pitDeger { text-align: center; font-size: 14.5px; font-weight: 700; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .pitDeger small { display: block; font-weight: 400; font-size: 11.5px; color: var(--soluk); margin-top: 2px; }
+  .pitDeger.tehlike { color: var(--kirmizi); }
+  .pitDeger.guvenli { color: var(--vg); }
+  .onay { display: flex; align-items: flex-start; gap: 10px; margin: 12px 0 0; cursor: pointer; font-size: 13.5px; }
+  .onay input { margin-top: 2px; accent-color: var(--vg); }
+  .onay small { display: block; color: var(--soluk); font-size: 12px; line-height: 1.55; margin-top: 3px; }
+  .uyariSatir { background: var(--amber-a); border: 1px solid #ecd9b0; border-radius: 8px; padding: 11px 14px; font-size: 12.5px; line-height: 1.6; color: #6d4a06; margin: 10px 0; }
+
+  /* eğitmen */
+  .egitmen { margin-top: 16px; border-radius: 13px; padding: 15px 18px; background: var(--beyaz); border: 1px solid var(--cizgi); border-left: 4px solid var(--mavi); display: flex; gap: 13px; align-items: flex-start; box-shadow: 0 3px 12px #0f2b1a0d; }
+  .egitmen.vurgu { border-left-color: var(--vg); background: #f4faf6; }
+  .egitmen.uyari { border-left-color: var(--amber); background: var(--amber-a); }
+  .egitmen .avatar { font-size: 25px; line-height: 1; }
+  .egitmen .rol { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--mavi); font-weight: 700; margin-bottom: 4px; }
+  .egitmen.vurgu .rol { color: var(--vg); }
+  .egitmen.uyari .rol { color: var(--amber); }
+  .egitmen p { font-size: 14px; line-height: 1.65; color: #3a423d; }
+  .egitmen p b { color: var(--metin); }
+
+  /* kurtarma oturumu */
+  .oturumUst { display: flex; align-items: center; gap: 12px; padding: 16px 24px 4px; }
+  .oturumUst h3 { font-size: 17px; font-weight: 600; }
+  .durumPul { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 999px; background: var(--amber-a); color: var(--amber); border: 1px solid #ecd9b0; }
+  .durumPul.bittiP { background: var(--vg-acik); color: var(--vg); border-color: var(--vg-cizgi); }
+  .oturumIc { padding: 12px 24px 22px; }
+  .akisSahne { background: #fbfcfb; border: 1px solid var(--cizgi); border-radius: 12px; overflow-x: auto; }
+  .akisSahne svg { display: block; min-width: 640px; width: 100%; height: auto; }
+  .statlar { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 14px 0 4px; }
+  .stat { background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 10px; padding: 10px 13px; }
+  .stat .ad { font-size: 11.5px; color: var(--soluk); margin-bottom: 4px; }
+  .stat b { font-size: 17px; font-variant-numeric: tabular-nums; }
+  .stat b.yesil { color: var(--vg); } .stat b.mavi { color: var(--mavi); } .stat b.turuncu { color: var(--amber); }
+  .cubukDis { height: 9px; border-radius: 6px; background: var(--zemin2); border: 1px solid var(--cizgi); overflow: hidden; margin: 10px 0 16px; }
+  .cubukIc { height: 100%; width: 0%; border-radius: 6px; background: linear-gradient(90deg, var(--vg-koyu), var(--vg)); transition: width .4s ease; }
+  .asamalar { display: flex; flex-direction: column; gap: 7px; margin: 4px 0 16px; }
+  .asama { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--soluk); }
+  .asama .isaret { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; background: var(--beyaz); border: 2px solid var(--cizgi); font-weight: 700; }
+  .asama.aktifA { color: var(--metin); font-weight: 600; }
+  .asama.aktifA .isaret { border-color: var(--amber); color: var(--amber); animation: nabiz 1.4s infinite; }
+  .asama.bittiA { color: var(--vg); }
+  .asama.bittiA .isaret { background: var(--vg-acik); border-color: var(--vg); color: var(--vg); }
+  .terminal { background: #101613; border: 1px solid #223328; border-radius: 11px; font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; line-height: 1.8; padding: 13px 16px; height: 122px; overflow: hidden; color: #93a89b; display: flex; flex-direction: column; justify-content: flex-end; }
+  .terminal .i { color: #35c46e; } .terminal .w { color: #dfa927; }
+
+  /* bitiş */
+  #labBitis { text-align: center; }
+  #labBitis .rozet { font-size: 56px; margin: 6px 0; }
+  #labBitis h2 { font-size: 28px; margin-bottom: 6px; }
+  #labBitis .altYazi { color: var(--soluk); font-size: 15px; margin-bottom: 18px; }
+  .skorBuyuk { font-size: 42px; font-weight: 800; color: var(--vg); font-variant-numeric: tabular-nums; }
+  .dersler { text-align: left; max-width: 600px; margin: 22px auto; display: flex; flex-direction: column; gap: 10px; }
+  .ders { display: flex; gap: 11px; background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 12px; padding: 13px 16px; font-size: 14px; line-height: 1.6; color: #3a423d; }
+  .ders b { color: var(--metin); }
+  .puanUcus { position: fixed; z-index: 50; font-weight: 800; font-size: 18px; pointer-events: none; animation: ucus 1.2s ease-out forwards; }
+  @keyframes ucus { 0% { opacity: 0; transform: translateY(6px); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-26px); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="labArac">
+    <a class="geri" href="./">← Platforma Dön</a>
+    <span class="rozetcik">Lab 02 · Kurtarma · Veeam Explorer</span>
+    <span style="display:flex; gap:8px; align-items:center;">
+      <span class="puanKutu" id="labSayacUst" hidden title="Bu lab'ı başlatan kişi sayısı">👥 <b>—</b></span>
+      <span class="puanKutu">PUAN <b id="puanGoster">0</b></span>
+    </span>
+  </div>
+
+  <!-- brifing -->
+  <div class="kartAcik" id="labGiris">
+    <span class="rozetcik"><span class="dot"></span> Acil Durum Brifingi</span>
+    <h2>O Veritabanını Geri Getir</h2>
+    <div class="alarmKutu">
+      <b>🚨 14:37 — Muhasebeden arama:</b> "Satış uygulaması hata veriyor! Biri <span class="mono">SatisDB</span> içindeki <span class="mono">Siparisler</span> tablosunu yanlışlıkla silmiş (DROP TABLE). 14:32'den beri hiçbir satış görünmüyor!"
+    </div>
+    <p class="alt">Panik yok. Lab 01'de kurduğun görev sayesinde elinde <b>dün 22:00 imaj yedeği</b> ve gün boyu <b>15 dakikada bir alınmış işlem günlüğü yedekleri</b> var. Görevin: SatisDB'yi felaketten hemen öncesine — <b>14:30'a</b> — döndürmek.</p>
+    <div class="yolKutu">📍 <b>Nasıl geldik?</b> SQL veritabanı kurtarma v13'te web konsolda değil, özel araçta yapılır: VBR konsolunda yedeğe sağ tıklayıp <b>Restore application items → Microsoft SQL Server databases…</b> dedik ve karşımızda <b>Veeam Explorer for Microsoft SQL Server</b> açıldı — en güncel yedek noktası (bugün 14:45) yüklendi.</div>
+    <div class="ozet">
+      <div><b>4</b><span>Görev</span></div>
+      <div><b>~5 dk</b><span>Tahmini Süre</span></div>
+      <div><b>100</b><span>Maksimum Puan</span></div>
+    </div>
+    <button class="btnP" onclick="labBaslat()">🚑 Explorer'ı Aç</button>
+  </div>
+
+  <!-- Veeam Explorer penceresi -->
+  <div id="labPencere" hidden>
+    <div class="masaustu">
+      <div class="masaKaydir">
+      <div class="masaIc" id="masaIc">
+
+        <div class="baslikCubugu">
+          <span class="ikonB">🗄</span>
+          <span class="ortaBaslik" id="pencereBaslik">SQL-PROD-01 as of less than a day ago (14:45 bugün) — Veeam Explorer for Microsoft SQL Server</span>
+          <span class="pencereDugme">─ &nbsp;□ &nbsp;✕</span>
+        </div>
+        <div class="sekmeSatir">
+          <span class="menuIkon">☰</span>
+          <span class="sekmeE">Home</span>
+          <span class="sekmeE">Server</span>
+          <span class="sekmeE aktifE">Database</span>
+        </div>
+
+        <!-- EXPLORER GÖRÜNÜMÜ -->
+        <div id="gorunumExplorer">
+          <div class="ribbon">
+            <div class="ribbonGrup">
+              <div class="ribbonDugmeler">
+                <div class="ribbonBtn"><svg class="silindirIkon" viewBox="0 0 26 26"><ellipse cx="13" cy="6" rx="9" ry="3.4" fill="#e8a33d"/><path d="M4 6 v13 a9 3.4 0 0 0 18 0 V6" fill="#f0b95e"/><ellipse cx="13" cy="6" rx="9" ry="3.4" fill="#e8a33d"/><path d="M17 15 l6 4 -6 4 z" fill="#17803f"/></svg>Instant<br>Recovery ▾</div>
+              </div><span class="grupAd">Instant Recovery</span>
+            </div>
+            <div class="ribbonGrup">
+              <div class="ribbonDugmeler">
+                <div class="ribbonBtn"><svg class="silindirIkon" viewBox="0 0 26 26"><ellipse cx="13" cy="6" rx="9" ry="3.4" fill="#e8a33d"/><path d="M4 6 v13 a9 3.4 0 0 0 18 0 V6" fill="#f0b95e"/><ellipse cx="13" cy="6" rx="9" ry="3.4" fill="#e8a33d"/><path d="M13 12 v9 M9 17 l4 4 4-4" stroke="#2f80ed" stroke-width="2.2" fill="none"/></svg>Publish<br>Database ▾</div>
+              </div><span class="grupAd">Publish</span>
+            </div>
+            <div class="ribbonGrup">
+              <div class="ribbonDugmeler">
+                <div class="ribbonBtn"><svg class="silindirIkon" viewBox="0 0 26 26"><ellipse cx="13" cy="6" rx="9" ry="3.4" fill="#e8a33d"/><path d="M4 6 v13 a9 3.4 0 0 0 18 0 V6" fill="#f0b95e"/><ellipse cx="13" cy="6" rx="9" ry="3.4" fill="#e8a33d"/><path d="M13 21 v-8 M9 16 l4-4 4 4" stroke="#17803f" stroke-width="2.2" fill="none"/></svg>Restore<br>Database ▾</div>
+                <div class="ribbonBtn"><svg class="silindirIkon" viewBox="0 0 26 26"><ellipse cx="13" cy="6" rx="9" ry="3.4" fill="#e8a33d"/><path d="M4 6 v13 a9 3.4 0 0 0 18 0 V6" fill="#f0b95e"/><ellipse cx="13" cy="6" rx="9" ry="3.4" fill="#e8a33d"/></svg>Restore<br>Schema ▾</div>
+              </div><span class="grupAd">Restore</span>
+            </div>
+            <div class="ribbonGrup">
+              <div class="ribbonDugmeler">
+                <div class="ribbonBtn"><svg class="silindirIkon" viewBox="0 0 26 26"><rect x="5" y="5" width="16" height="16" rx="3" fill="#f0b95e" stroke="#e8a33d"/><text x="13" y="17" text-anchor="middle" font-size="8" font-weight="700" fill="#1f2428">BAK</text></svg>Export<br>Backup ▾</div>
+                <div class="ribbonBtn"><svg class="silindirIkon" viewBox="0 0 26 26"><rect x="5" y="5" width="16" height="16" rx="3" fill="#f0b95e" stroke="#e8a33d"/><text x="13" y="17" text-anchor="middle" font-size="7.5" font-weight="700" fill="#1f2428">MDF</text></svg>Export<br>Files ▾</div>
+                <div class="ribbonBtn"><svg class="silindirIkon" viewBox="0 0 26 26"><rect x="5" y="5" width="16" height="16" rx="3" fill="#f0b95e" stroke="#e8a33d"/><text x="13" y="17" text-anchor="middle" font-size="7" font-weight="700" fill="#1f2428">SQL</text></svg>Export<br>Schema ▾</div>
+              </div><span class="grupAd">Export</span>
+            </div>
+          </div>
+
+          <div class="exGovde">
+            <div class="agacPanel">
+              <div class="agacBaslik">Databases</div>
+              <div class="agacIc">
+                <div class="agacSatir dugum">▾ 🖥 SQL-PROD-01</div>
+                <div class="agacSatir dugum agacGirinti1">▾ 📁 Default Instance</div>
+                <div class="agacSatir db agacGirinti2" data-db="master">🛢 master</div>
+                <div class="agacSatir db agacGirinti2" data-db="msdb">🛢 msdb</div>
+                <div class="agacSatir db agacGirinti2" data-db="SatisDB" data-dogru="1">🛢 SatisDB</div>
+                <div class="agacSatir db agacGirinti2" data-db="TestDB">🛢 TestDB</div>
+              </div>
+            </div>
+            <div class="bilgiPanel" id="bilgiPanel">
+              <div class="bosBilgi">Soldaki ağaçtan bir veritabanı seç — bilgileri burada görünecek.</div>
+            </div>
+          </div>
+          <div class="durumCubugu">veeam</div>
+
+          <!-- sağ tık bağlam menüsü (gerçek Explorer'daki gibi iki seviyeli) -->
+          <div class="exMenu" id="anaMenu">
+            <div class="exMenuOge pasifOge" onclick="digerOge('Instant recovery')"><span class="mIkon">▶️</span> Instant recovery <span class="okSag">›</span></div>
+            <div class="exMenuOge pasifOge" onclick="digerOge('Publish database')"><span class="mIkon">📤</span> Publish database <span class="okSag">›</span></div>
+            <div class="exMenuOge" id="restoreDbOge" onclick="altMenuAc(event)" onmouseenter="altMenuAc(event)"><span class="mIkon">🛢</span> Restore database <span class="okSag">›</span></div>
+            <div class="exMenuOge pasifOge" onclick="digerOge('Restore schema')"><span class="mIkon">🗂</span> Restore schema <span class="okSag">›</span></div>
+            <div class="exMenuOge pasifOge" onclick="digerOge('Export backup')"><span class="mIkon">💾</span> Export backup <span class="okSag">›</span></div>
+            <div class="exMenuOge pasifOge" onclick="digerOge('Export files')"><span class="mIkon">📄</span> Export files <span class="okSag">›</span></div>
+            <div class="exMenuOge pasifOge" onclick="digerOge('Export schema')"><span class="mIkon">📄</span> Export schema <span class="okSag">›</span></div>
+          </div>
+          <div class="exMenu" id="restoreMenu">
+            <div class="exMenuOge" onclick="menuSecim('latest')"><span class="mIkon">🛢</span> Restore latest state to SQL-PROD-01</div>
+            <div class="exMenuOge" onclick="menuSecim('pit')"><span class="mIkon">🕒</span> Restore point-in-time state to SQL-PROD-01…</div>
+            <div class="exMenuOge" onclick="menuSecim('baska')"><span class="mIkon">🖥</span> Restore to another server…</div>
+          </div>
+
+          <!-- Restore Wizard: point-in-time dialogu -->
+          <div class="ortu" id="ortu"></div>
+          <div class="dialog" id="pitDialog" role="dialog" aria-label="Restore Wizard">
+            <div class="dialogBaslik">Restore Wizard <button class="kapatX" onclick="dialogKapat('pitDialog')">✕</button></div>
+            <div class="dialogIc">
+              <h4>Specify restore point</h4>
+              <p class="soru">Specify point in time you want to restore the database to:</p>
+              <label class="radyoDuz"><input type="radio" name="pit" value="imaj">
+                <span>Restore to the point in time of the selected image-level backup<small>Dün 22:00 — imaj yedeğinin alındığı an</small></span></label>
+              <label class="radyoDuz"><input type="radio" name="pit" value="pit">
+                <span>Restore to a specific point in time (requires transaction log backups)<small>Log zinciri: dün 22:00 → bugün 14:45 arasında herhangi bir dakika</small></span></label>
+              <div class="pitKutu" id="pitKutu" style="display:none">
+                <div class="pitUclar"><span>dün 22:00<br>(imaj yedeği)</span><span>bugün 14:45<br>(son log)</span></div>
+                <input type="range" id="pitSurgu" min="0" max="1005" step="15" value="600" aria-label="Kurtarma zamanı">
+                <div class="pitDeger" id="pitDeger"></div>
+              </div>
+            </div>
+            <div class="dialogAlt">
+              <button class="btnDlg birincil" onclick="pitIleri()">Restore</button>
+              <button class="btnDlg" onclick="dialogKapat('pitDialog')">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- KURTARMA OTURUMU -->
+        <div id="gorunumOturum" hidden>
+          <div class="oturumUst">
+            <h3 class="mono">SatisDB — point-in-time restore</h3>
+            <span class="durumPul" id="oturumDurum">● Restoring</span>
+          </div>
+          <div class="oturumIc">
+            <div class="akisSahne">
+              <svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" aria-label="Kurtarma veri akışı animasyonu">
+                <defs>
+                  <linearGradient id="boruG" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0" stop-color="#17803f66"/><stop offset="1" stop-color="#d9dcdb"/>
+                  </linearGradient>
+                </defs>
+                <path id="yol1" d="M 215 150 C 300 150 320 150 385 150" fill="none" stroke="url(#boruG)" stroke-width="4" stroke-dasharray="7 7"/>
+                <path id="yol2" d="M 555 150 C 630 150 650 150 720 150" fill="none" stroke="url(#boruG)" stroke-width="4" stroke-dasharray="7 7"/>
+                <g>
+                  <rect x="55" y="75" width="160" height="150" rx="14" fill="#ffffff" stroke="#d9dcdb"/>
+                  <text x="135" y="102" text-anchor="middle" fill="#676e6a" font-size="12" font-weight="700">REPO-REFS-01</text>
+                  <g font-family="Consolas,monospace">
+                    <rect x="75" y="115" width="120" height="30" rx="8" fill="#e7f4ec" stroke="#bfe3cd"/>
+                    <text x="135" y="134" text-anchor="middle" fill="#17803f" font-size="11" font-weight="700">.vbk · 22:00</text>
+                    <rect x="75" y="152" width="120" height="30" rx="8" fill="#f5f6f6" stroke="#d9dcdb"/>
+                    <text x="135" y="171" text-anchor="middle" fill="#1f2428" font-size="10.5">log zinciri ×66</text>
+                  </g>
+                  <g id="logRozet" opacity="0">
+                    <rect x="75" y="190" width="120" height="24" rx="7" fill="#fdf3df" stroke="#e3c98f"/>
+                    <text x="135" y="206" text-anchor="middle" fill="#b97a08" font-size="10" font-weight="700" font-family="Consolas,monospace" id="logSayac">replay: 22:00</text>
+                  </g>
+                </g>
+                <g>
+                  <rect x="385" y="90" width="170" height="120" rx="14" fill="#ffffff" stroke="#d9dcdb"/>
+                  <text x="470" y="117" text-anchor="middle" fill="#676e6a" font-size="12" font-weight="700">Mount Server</text>
+                  <text x="470" y="140" text-anchor="middle" fill="#1f2428" font-size="11.5">Yedek bağlanır (mount)</text>
+                  <text x="470" y="160" text-anchor="middle" fill="#1f2428" font-size="11.5">Log replay motoru</text>
+                  <text id="oranYazi" x="470" y="188" text-anchor="middle" fill="#17803f" font-size="12" font-weight="700" font-family="Consolas,monospace">—</text>
+                </g>
+                <g>
+                  <rect x="720" y="75" width="140" height="150" rx="14" fill="#ffffff" stroke="#2f80ed88"/>
+                  <text x="790" y="102" text-anchor="middle" fill="#676e6a" font-size="12" font-weight="700">SQL-PROD-01</text>
+                  <text x="790" y="120" text-anchor="middle" fill="#2f80ed" font-size="10.5">SQL Server 2022</text>
+                  <g font-family="Consolas,monospace">
+                    <rect x="740" y="132" width="100" height="60" rx="8" fill="#f5f6f6" stroke="#d9dcdb"/>
+                    <text id="dbDurum" x="790" y="167" text-anchor="middle" fill="#c9303e" font-size="11" font-weight="700">RESTORING</text>
+                  </g>
+                  <g id="onlineRozet" opacity="0">
+                    <rect x="740" y="200" width="100" height="22" rx="6" fill="#e7f4ec" stroke="#bfe3cd"/>
+                    <text x="790" y="215" text-anchor="middle" fill="#17803f" font-size="10" font-weight="700">ONLINE ✓</text>
+                  </g>
+                </g>
+                <g id="paketler1" opacity="0">
+                  <circle r="6" fill="#17803f"><animateMotion dur="1.6s" repeatCount="indefinite"><mpath href="#yol1"/></animateMotion></circle>
+                  <circle r="4.5" fill="#17803f99"><animateMotion dur="1.6s" begin="0.55s" repeatCount="indefinite"><mpath href="#yol1"/></animateMotion></circle>
+                </g>
+                <g id="paketler2" opacity="0">
+                  <circle r="5" fill="#2f80ed"><animateMotion dur="1.6s" repeatCount="indefinite"><mpath href="#yol2"/></animateMotion></circle>
+                  <circle r="3.5" fill="#2f80ed99"><animateMotion dur="1.6s" begin="0.8s" repeatCount="indefinite"><mpath href="#yol2"/></animateMotion></circle>
+                </g>
+                <text x="300" y="132" text-anchor="middle" fill="#17803f" font-size="10.5" font-weight="600">yedek verisi</text>
+                <text x="637" y="132" text-anchor="middle" fill="#2f80ed" font-size="10.5" font-weight="600">veritabanı dosyaları</text>
+              </svg>
+            </div>
+            <div class="statlar">
+              <div class="stat"><div class="ad">Geri Yüklenen</div><b id="stGeri" class="yesil">0 GB</b></div>
+              <div class="stat"><div class="ad">Uygulanan Log</div><b id="stLog" class="mavi">0 / 66</b></div>
+              <div class="stat"><div class="ad">Replay Konumu</div><b id="stZaman" class="turuncu">—</b></div>
+              <div class="stat"><div class="ad">Geçen Süre (RTO)</div><b id="stRto">0:00</b></div>
+            </div>
+            <div class="cubukDis"><div class="cubukIc" id="ilerleme"></div></div>
+            <div class="asamalar" id="asamalar"></div>
+            <div class="terminal" id="term"></div>
+          </div>
+        </div>
+
+        <!-- Databases restore summary (kurtarma bitince açılır) -->
+        <div class="ortu" id="ortu2"></div>
+        <div class="dialog" id="ozetDialog" role="dialog" aria-label="Databases restore summary" style="width:700px">
+          <div class="dialogBaslik">Veeam Explorer for Microsoft SQL Server <button class="kapatX" onclick="bitir()">✕</button></div>
+          <div class="ozetBaslikY">
+            <span class="yesilTik">✓</span>
+            <div><h4>Databases restore summary</h4><small>1 database successfully restored.</small></div>
+          </div>
+          <table class="ozetTabloY">
+            <thead><tr><th style="width:190px">Object</th><th>Result</th></tr></thead>
+            <tbody><tr><td>🛢 SatisDB</td><td>Restored to SQL-PROD-01 with name SatisDB (point in time: bugün 14:30)</td></tr></tbody>
+          </table>
+          <div class="ozetAltY">
+            <label><input type="checkbox" checked disabled> Errors</label>
+            <label><input type="checkbox" checked disabled> Warnings</label>
+            <label><input type="checkbox" checked disabled> Success</label>
+            <span class="gorAz" style="margin-left:auto">⌃ See less</span>
+            <button class="btnDlg birincil" onclick="bitir()">OK</button>
+          </div>
+        </div>
+
+      </div>
+      </div>
+    </div>
+
+    <div class="egitmen" id="egitmen">
+      <span class="avatar">👨‍🏫</span>
+      <div>
+        <div class="rol" id="egitmenRol">Eğitmen</div>
+        <p id="egitmenMetin"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- bitiş -->
+  <div class="kartAcik" id="labBitis" hidden>
+    <div class="rozet" id="rozetIkon">🏆</div>
+    <h2>Veritabanı Kurtarıldı!</h2>
+    <p class="altYazi">SatisDB, 14:30'daki haline döndü — Siparisler tablosu ve 14:30'a kadarki tüm satışlar yerinde. Kayıp veri penceresi: yalnızca 2 dakika.</p>
+    <div class="skorBuyuk" id="sonPuan">0</div>
+    <p class="altYazi" id="rozetYazi"></p>
+    <div class="dersler">
+      <div class="ders">🧭 <span><b>Doğru araç:</b> v13'te SQL veritabanı kurtarma web konsolda değil, <b>Veeam Explorer for Microsoft SQL Server</b>'da yapılır. Konsoldan "Restore application items" ile açılır; imaj yedeğinin içindeki veritabanlarını doğrudan görür.</span></div>
+      <div class="ders">⏱️ <span><b>Point-in-time'ın gücü Lab 01'de kuruldu:</b> 15 dakikalık log yedekleri olmasaydı tek seçenek dün 22:00 olurdu — bütün günün satışları giderdi. Log zinciri sayesinde 14:30'a döndük.</span></div>
+      <div class="ders">🪤 <span><b>"Restore latest state" her zaman dost değildir:</b> En güncel duruma dönmek 14:32'deki DROP TABLE'ı da geri getirirdi. Felaket anını bil, ondan hemen öncesine dön.</span></div>
+      <div class="ders">📉 <span><b>RPO ve RTO artık soyut değil:</b> RPO'n 2 dakika (kaybedilen veri), RTO'n bu oturumun süresiydi. İkisini de Lab 01'deki tasarım kararların belirledi.</span></div>
+    </div>
+    <a class="btnP" href="./">← Platforma Dön</a>
+    <p style="margin-top:16px; font-size:13px; color:var(--soluk);">Bunu bir de gerçek ortamında dene: <b style="color:var(--vg)">test kurtarması, felaketten önce yapılan kurtarmadır.</b></p>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ==================== PUAN ==================== */
+let puan = 0;
+const oduller = new Set();
+function puanYaz() { document.getElementById("puanGoster").textContent = puan; }
+function puanVer(n, x, y) {
+  puan = Math.max(0, puan + n); puanYaz();
+  const u = document.createElement("div");
+  u.className = "puanUcus";
+  u.textContent = (n > 0 ? "+" : "") + n;
+  u.style.color = n > 0 ? "var(--vg)" : "var(--kirmizi)";
+  u.style.left = (x || innerWidth / 2) + "px";
+  u.style.top = (y || 200) + "px";
+  document.body.appendChild(u);
+  setTimeout(() => u.remove(), 1200);
+}
+function puanBirKere(anahtar, n, x, y) {
+  if (oduller.has(anahtar)) return;
+  oduller.add(anahtar);
+  puanVer(n, x, y);
+}
+
+/* ==================== EĞİTMEN ==================== */
+function egitmenSoyle(html, ton) {
+  const e = document.getElementById("egitmen");
+  e.classList.remove("vurgu", "uyari");
+  if (ton === "iyi") e.classList.add("vurgu");
+  if (ton === "uyari") e.classList.add("uyari");
+  document.getElementById("egitmenRol").textContent = ton === "uyari" ? "Dikkat!" : (ton === "iyi" ? "Harika seçim!" : "Eğitmen");
+  document.getElementById("egitmenMetin").innerHTML = html;
+}
+
+/* ==================== DURUM ==================== */
+const durum = { db: null, menu: null, pitRadyo: null, pitDakika: 600, onaylandi: false };
+/* pitDakika: dün 22:00'dan itibaren dakika. 990 = bugün 14:30 (hedef); 14:32 felaket; 1005 = 14:45 son log */
+
+function dakikaToSaat(dk) {
+  const toplam = (22 * 60 + dk) % (24 * 60);
+  const gun = (22 * 60 + dk) >= 24 * 60 ? "bugün" : "dün";
+  const s = String(Math.floor(toplam / 60)).padStart(2, "0");
+  const d = String(toplam % 60).padStart(2, "0");
+  return { metin: s + ":" + d, gun };
+}
+
+function labBaslat() {
+  document.getElementById("labGiris").hidden = true;
+  document.getElementById("labPencere").hidden = false;
+  Object.assign(durum, { db: null, menu: null, pitRadyo: null, pitDakika: 600, onaylandi: false });
+  oduller.clear();
+  puan = 0; puanYaz();
+  egitmenSoyle("Veeam Explorer açıldı — yedek noktası: <b>bugün 14:45</b> (en güncel). İlk görev: soldaki ağaçtan <b>hastamızı</b> bulup seç, sonra üzerine <b>sağ tıkla</b> — gerçek arayüzdeki akış bu.");
+  window.scrollTo({ top: 0 });
+}
+
+/* ---- görev 1: veritabanı seçimi ---- */
+const dbBilgi = {
+  master:  { boyut: "6 MB",  model: "Simple", not: "sistem veritabanı" },
+  msdb:    { boyut: "18 MB", model: "Simple", not: "sistem veritabanı" },
+  SatisDB: { boyut: "34 GB", model: "Full",   not: "üretim — satış uygulaması" },
+  TestDB:  { boyut: "2 GB",  model: "Simple", not: "test ortamı" },
+};
+function menuleriKapat() {
+  document.getElementById("anaMenu")?.classList.remove("acikM");
+  document.getElementById("restoreMenu")?.classList.remove("acikM");
+}
+document.addEventListener("click", menuleriKapat);
+function bilgiYaz(ad) {
+  const b = dbBilgi[ad];
+  document.getElementById("bilgiPanel").innerHTML = `
+    <h3>Database Info</h3>
+    <table class="bilgiTablo">
+      <tr><td>Name:</td><td><b class="mono">${ad}</b></td></tr>
+      <tr><td>Backup created:</td><td>bugün 14:45</td></tr>
+      <tr><td>Recovery model:</td><td><b class="${b.model === "Full" ? "yesilD" : ""}">${b.model}</b>${b.model === "Full" ? " — point-in-time hazır ✓" : ""}</td></tr>
+      <tr><td>Read-only:</td><td>No</td></tr>
+      <tr><td>Size:</td><td>${b.boyut} · <span style="color:var(--soluk)">${b.not}</span></td></tr>
+    </table>
+    <div class="dosyaLink">
+      <span class="lbl">Primary database file</span>
+      <span class="yol">E:\\SQLData\\${ad}.mdf</span>
+      <span class="lbl">Secondary database and log files</span>
+      <span class="yol">F:\\SQLLogs\\${ad}_log.ldf</span>
+    </div>`;
+}
+function dbSec(satir, e) {
+  document.querySelectorAll(".agacSatir.db").forEach(x => x.classList.remove("seciliDb", "hataliDb"));
+  const ad = satir.dataset.db;
+  bilgiYaz(ad);
+  if (satir.dataset.dogru) {
+    satir.classList.add("seciliDb");
+    durum.db = "SatisDB";
+    puanBirKere("db", 10, e.clientX, e.clientY);
+    egitmenSoyle("<b>SatisDB seçildi.</b> Sağdaki bilgiye bak: <b>Recovery model: Full</b> — point-in-time kurtarma ancak bununla + log yedekleriyle mümkün. Şimdi üzerine <b>sağ tıkla</b> ve menüden doğru kurtarma yolunu bul.", "iyi");
+    return true;
+  }
+  satir.classList.add("hataliDb");
+  durum.db = null;
+  puanVer(-5, e.clientX, e.clientY);
+  egitmenSoyle(ad === "TestDB" ? "TestDB test ortamı — muhasebenin derdi <b>SatisDB</b>. (Recovery model'i de Simple: PIT zaten yapamazdın.)" : "<b>" + ad + "</b> bir sistem veritabanı; ona dokunmak bambaşka dertler açar. Hedef: SatisDB.", "uyari");
+  return false;
+}
+document.querySelectorAll(".agacSatir.db").forEach(satir => {
+  satir.addEventListener("click", (e) => { e.stopPropagation(); dbSec(satir, e); });
+  /* gerçek Explorer'daki gibi: sağ tık → bağlam menüsü */
+  satir.addEventListener("contextmenu", (e) => {
+    e.preventDefault(); e.stopPropagation();
+    menuleriKapat();
+    if (!dbSec(satir, e)) return;
+    const menu = document.getElementById("anaMenu");
+    const kap = document.getElementById("masaIc").getBoundingClientRect();
+    menu.style.left = (e.clientX - kap.left) + "px";
+    menu.style.top = (e.clientY - kap.top + 4) + "px";
+    menu.classList.add("acikM");
+  });
+});
+
+/* ---- görev 2: bağlam menüsü → Restore database alt menüsü ---- */
+function altMenuAc(e) {
+  e.stopPropagation?.();
+  const ana = document.getElementById("anaMenu");
+  if (!ana.classList.contains("acikM")) return;
+  const oge = document.getElementById("restoreDbOge").getBoundingClientRect();
+  const kap = document.getElementById("masaIc").getBoundingClientRect();
+  const menu = document.getElementById("restoreMenu");
+  menu.style.left = Math.min(oge.right - kap.left - 6, kap.width - 340) + "px";
+  menu.style.top = (oge.top - kap.top) + "px";
+  menu.classList.add("acikM");
+}
+function digerOge(ad) {
+  menuleriKapat();
+  egitmenSoyle("<b>" + ad + "</b> başka senaryoların aracı — bizim işimiz veritabanını eski haline döndürmek. Menüden <b>Restore database ›</b> yolunu izle.", "uyari");
+}
+function menuSecim(tip) {
+  menuleriKapat();
+  if (tip === "pit") {
+    durum.menu = "pit";
+    puanBirKere("menu", 25, innerWidth / 2, 280);
+    egitmenSoyle("<b>Doğru menü! 🎯</b> Karşında gerçek <b>Restore Wizard</b>: hangi ana döneceğimizi burada seçeceğiz. Dikkat: felaket 14:32'deydi.", "iyi");
+    dialogAc("pitDialog");
+  } else if (tip === "latest") {
+    durum.menu = null;
+    puanVer(-5, innerWidth / 2, 280);
+    egitmenSoyle("<b>Tuzak!</b> 'Restore latest state' en güncel âna (14:45) döner — yani <b>DROP TABLE dahil</b>. Hasarlı durumu özenle geri yüklemiş olurduk. Felaketten <b>öncesine</b> gitmeliyiz: point-in-time.", "uyari");
+  } else {
+    egitmenSoyle("'Restore to another server' <b>meşru bir tekniktir</b> — kurtarmayı önce yan sunucuda doğrulamak istediğinde altın değerinde. Ama uygulama SatisDB'ye SQL-PROD-01 üzerinde bağlanıyor ve her dakika para kaybettiriyor; hızlı RTO için aynı sunucuya point-in-time dön.", "uyari");
+  }
+}
+
+/* ---- görev 3: point-in-time dialogu ---- */
+function dialogAc(id) {
+  document.getElementById("ortu").classList.add("acikO");
+  document.getElementById(id).classList.add("acikD");
+}
+function dialogKapat(id) {
+  document.getElementById("ortu").classList.remove("acikO");
+  document.getElementById(id).classList.remove("acikD");
+}
+function pitGuncelle() {
+  const s = dakikaToSaat(durum.pitDakika);
+  const d = document.getElementById("pitDeger");
+  d.innerHTML = s.gun + " <b>" + s.metin + "</b>" + (durum.pitDakika >= 992 ? "<small>⚠ 14:32'deki DROP TABLE bu aralıkta — silme işlemi de geri gelir!</small>" : (durum.pitDakika >= 975 ? "<small>✓ felakete yakın, veri kaybı minimum</small>" : "<small>bu saatten sonraki tüm satışlar kaybolur</small>"));
+  d.className = "pitDeger " + (durum.pitDakika >= 992 ? "tehlike" : (durum.pitDakika >= 975 ? "guvenli" : ""));
+}
+document.querySelectorAll('input[name="pit"]').forEach(r => r.onchange = (e) => {
+  if (e.target.value === "pit") {
+    durum.pitRadyo = "pit";
+    document.getElementById("pitKutu").style.display = "block";
+    puanBirKere("pitRadyo", 20, innerWidth / 2, 320);
+    egitmenSoyle("<b>İşte log yedeklerinin var oluş nedeni!</b> Şimdi kaydırıcıyı kullan: hedef, felaketten (14:32) hemen öncesi — <b>14:30</b>. Kaydırıcının altındaki mesajı izle, sonra <b>Restore</b>'a bas.", "iyi");
+    pitGuncelle();
+  } else {
+    durum.pitRadyo = null;
+    document.getElementById("pitKutu").style.display = "none";
+    puanVer(-5, innerWidth / 2, 320);
+    egitmenSoyle("İmaj anına (dün 22:00) dönersek <b>bugünün TÜM satışları</b> kaybolur. Elinde log zinciri varken bunu seçmek, anahtar varken kapıyı tekmelemek gibi.", "uyari");
+    e.target.checked = false;
+  }
+});
+document.getElementById("pitSurgu").oninput = (e) => {
+  durum.pitDakika = +e.target.value;
+  pitGuncelle();
+  if (durum.pitDakika === 990) puanBirKere("pitZaman", 20, innerWidth / 2, 380);
+};
+function pitIleri() {
+  if (!durum.pitRadyo) {
+    egitmenSoyle("Bir kurtarma zamanı stratejisi seçmelisin — log zincirin varken bunu boşa harcama.", "uyari");
+    return;
+  }
+  if (durum.pitDakika >= 992) {
+    puanVer(-5, innerWidth / 2, 260);
+    egitmenSoyle("Seçtiğin an 14:32'deki <b>DROP TABLE'dan sonra</b> — bu haliyle silme işlemi de geri gelir! Kaydırıcıyı felaketten öncesine çek.", "uyari");
+    return;
+  }
+  if (durum.pitDakika < 975) {
+    puanVer(-5, innerWidth / 2, 260);
+    egitmenSoyle("Şu anki seçim " + dakikaToSaat(durum.pitDakika).metin + " — felaket 14:32'deydi; aradaki tüm satışlar kaybolur. Daha yakına gel.", "uyari");
+    return;
+  }
+  puanBirKere("baslat", 25, innerWidth / 2, 300);
+  dialogKapat("pitDialog");
+  kurtarmayiCalistir();
+}
+
+/* ==================== KURTARMA OTURUMU ==================== */
+const asamaListesi = [
+  "Yedek dosyası mount ediliyor — 22:00 imajındaki SatisDB dosyalarına erişim",
+  "Veritabanı dosyaları SQL-PROD-01'e geri kopyalanıyor (34 GB)",
+  "İşlem günlükleri sırayla uygulanıyor (log replay: 22:00 → 14:30)",
+  "STOPAT 14:30 — veritabanı tutarlı duruma getiriliyor",
+  "SatisDB online alınıyor ve doğrulanıyor",
+];
+
+function kurtarmayiCalistir() {
+  document.getElementById("gorunumExplorer").hidden = true;
+  document.getElementById("gorunumOturum").hidden = false;
+  document.getElementById("pencereBaslik").textContent = "Restoring SatisDB… — Veeam Explorer for Microsoft SQL Server";
+  window.scrollTo({ top: 0 });
+  egitmenSoyle("Kurtarma başladı! Akış <b>ters yönde</b>: veri depodan sunucuya dönüyor. 'Uygulanan Log' sayacını izle — 66 log yedeği sırayla replay ediliyor; <b>STOPAT 14:30</b>'da duracak.");
+
+  const asamaKap = document.getElementById("asamalar");
+  asamaKap.innerHTML = asamaListesi.map((a, i) => `<div class="asama" id="asama${i}"><span class="isaret">${i + 1}</span> ${a}</div>`).join("");
+  const term = document.getElementById("term");
+  term.innerHTML = "";
+  const log = (m, sinif) => {
+    const s = document.createElement("div");
+    if (sinif) s.className = sinif;
+    s.textContent = `[${new Date().toLocaleTimeString("tr-TR")}] ${m}`;
+    term.appendChild(s);
+    while (term.children.length > 6) term.firstChild.remove();
+  };
+
+  const paket1 = document.getElementById("paketler1");
+  const paket2 = document.getElementById("paketler2");
+  paket1.setAttribute("opacity", 0); paket2.setAttribute("opacity", 0);
+  document.getElementById("logRozet").setAttribute("opacity", 0);
+  document.getElementById("onlineRozet").setAttribute("opacity", 0);
+  document.getElementById("dbDurum").textContent = "RESTORING";
+  document.getElementById("dbDurum").setAttribute("fill", "#c9303e");
+  document.getElementById("ilerleme").style.width = "0%";
+  const pul = document.getElementById("oturumDurum");
+  pul.textContent = "● Restoring"; pul.classList.remove("bittiP");
+
+  const TOPLAM = 34, LOGLAR = 66;
+  let evre = 0, yuzde = 0;
+  const evreSinir = [6, 40, 88, 94, 100];
+  const baslangic = Date.now(), SURE = 16000;
+
+  const asamaAc = (i) => {
+    for (let j = 0; j < asamaListesi.length; j++) {
+      const el = document.getElementById("asama" + j);
+      el.classList.toggle("aktifA", j === i);
+      el.classList.toggle("bittiA", j < i);
+      if (j < i) el.querySelector(".isaret").textContent = "✓";
+    }
+  };
+
+  log("Restore session started");
+  asamaAc(0);
+  log("Mounting backup file from REPO-REFS-01...", "w");
+
+  const zamanlayici = setInterval(() => {
+    yuzde = Math.min(100, (Date.now() - baslangic) / SURE * 100);
+    document.getElementById("ilerleme").style.width = yuzde + "%";
+    const gecen = Math.floor((Date.now() - baslangic) / 1000);
+    document.getElementById("stRto").textContent = Math.floor(gecen / 60) + ":" + String(gecen % 60).padStart(2, "0");
+
+    while (evre < evreSinir.length && yuzde >= evreSinir[evre]) {
+      evre++;
+      asamaAc(evre);
+      if (evre === 1) { log("Backup mounted successfully", "i"); log("Copying SatisDB.mdf, SatisDB_log.ldf..."); paket1.setAttribute("opacity", 1); paket2.setAttribute("opacity", 1); document.getElementById("oranYazi").textContent = "kopyalama"; }
+      if (evre === 2) { log("File copy complete. Starting log replay...", "i"); document.getElementById("logRozet").setAttribute("opacity", 1); document.getElementById("oranYazi").textContent = "log replay"; }
+      if (evre === 3) { log("RESTORE LOG ... WITH STOPAT = '14:30:00'", "w"); paket1.setAttribute("opacity", 0); }
+      if (evre === 4) { log("Database recovery complete", "i"); paket2.setAttribute("opacity", 0); }
+    }
+
+    if (evre >= 1) {
+      const kopya = Math.min(TOPLAM, TOPLAM * Math.min(1, (yuzde - 6) / 34));
+      document.getElementById("stGeri").textContent = kopya.toFixed(0) + " GB";
+    }
+    if (evre >= 2) {
+      const oran = Math.min(1, (yuzde - 40) / 48);
+      const logSayisi = Math.min(LOGLAR, Math.floor(LOGLAR * oran));
+      document.getElementById("stLog").textContent = logSayisi + " / " + LOGLAR;
+      const dk = Math.floor(990 * oran);
+      const s = dakikaToSaat(dk);
+      document.getElementById("stZaman").textContent = s.gun + " " + s.metin;
+      document.getElementById("logSayac").textContent = "replay: " + s.metin;
+    }
+
+    if (yuzde >= 100) {
+      clearInterval(zamanlayici);
+      asamaAc(5);
+      document.getElementById("stLog").textContent = LOGLAR + " / " + LOGLAR;
+      document.getElementById("stZaman").textContent = "bugün 14:30";
+      document.getElementById("dbDurum").textContent = "ONLINE";
+      document.getElementById("dbDurum").setAttribute("fill", "#17803f");
+      document.getElementById("onlineRozet").setAttribute("opacity", 1);
+      pul.textContent = "✔ Success"; pul.classList.add("bittiP");
+      log("SatisDB is ONLINE — last record: 14:29:47", "i");
+      log("Restore session completed successfully", "i");
+      egitmenSoyle("<b>Success!</b> SatisDB 14:30'daki haline döndü: Siparisler tablosu yerinde, son kayıt 14:29:47. Gerçekteki gibi <b>restore summary</b> penceresi açılıyor — OK ile kapat.", "iyi");
+      setTimeout(() => {
+        document.getElementById("ortu2").classList.add("acikO");
+        document.getElementById("ozetDialog").classList.add("acikD");
+      }, 1400);
+    }
+  }, 130);
+}
+
+function bitir() {
+  document.getElementById("ortu2").classList.remove("acikO");
+  document.getElementById("ozetDialog").classList.remove("acikD");
+  document.getElementById("labPencere").hidden = true;
+  document.getElementById("labBitis").hidden = false;
+  window.scrollTo({ top: 0 });
+  const p = puan;
+  const [ikon, yazi] = p >= 90 ? ["🥇", "Altın rozet — soğukkanlı bir kurtarma operasyonu, tek kayıp 2 dakika!"]
+                     : p >= 65 ? ["🥈", "Gümüş rozet — veritabanı kurtarıldı! Birkaç tuzağa takıldın ama sonuç başarılı."]
+                     : ["🥉", "Bronz rozet — görev tamam! Tekrar oynayarak tuzakları ezbere öğrenebilirsin."];
+  document.getElementById("rozetIkon").textContent = ikon;
+  document.getElementById("rozetYazi").textContent = yazi;
+  document.getElementById("sonPuan").textContent = p + " / 100";
+}
+
+/* ==================== LAB SAYACI ==================== */
+(async () => {
+  const bugun = new Date().toISOString().slice(0, 10);
+  const tip = localStorage.getItem("labSayacGun-kurtarma") === bugun ? "get" : "hit";
+  try {
+    const y = await fetch("https://abacus.jasoncameron.dev/" + tip + "/backup-heroes-bulenttolu/lab-kurtarma");
+    const j = await y.json();
+    if (tip === "hit") localStorage.setItem("labSayacGun-kurtarma", bugun);
+    if (typeof j.value === "number") {
+      const e = document.getElementById("labSayacUst");
+      e.innerHTML = "👥 <b>" + j.value.toLocaleString("tr-TR") + "</b>";
+      e.hidden = false;
+    }
+  } catch { /* servis yoksa gizli kalır */ }
+})();
+</script>
+</body>
+</html>
