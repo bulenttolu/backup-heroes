@@ -565,6 +565,9 @@
               <div class="cubukDis"><div class="cubukIc" id="ilerleme"></div></div>
               <div class="asamalar" id="asamalar"></div>
               <div class="terminal" id="term"></div>
+              <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+                <button class="btnYesil" id="oturumDevam" onclick="bitir()" hidden>Next →</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1183,6 +1186,7 @@ function gorevCalistir() {
   paket1.setAttribute("opacity", 0); paket2.setAttribute("opacity", 0);
   snap.setAttribute("opacity", 0); vbk.setAttribute("opacity", 0);
   document.getElementById("ilerleme").style.width = "0%";
+  document.getElementById("oturumDevam").hidden = true;
 
   const TOPLAM = 120, ORAN = 2.4;
   let evre = 0, yuzde = 0;
@@ -1245,8 +1249,8 @@ function gorevCalistir() {
       document.getElementById("depoGB").textContent = (TOPLAM / ORAN).toFixed(0) + " GB";
       log("Restore point created successfully", "i");
       log("Job finished with Success", "i");
-      egitmenSoyle("<b>Success!</b> 120 GB işlendi, ağdan yalnızca 50 GB geçti (2.4x sıkıştırma) ve depoda <b>.vbk</b> dosyası — ilk geri yükleme noktan — oluştu. Darboğazın önce 'Source' sonra 'Target' göstermesi normal: okuma bitti, yazma sürüyordu.", "iyi");
-      setTimeout(bitir, 2400);
+      egitmenSoyle("<b>Success!</b> 120 GB işlendi, ağdan yalnızca 50 GB geçti (2.4x sıkıştırma) ve depoda <b>.vbk</b> dosyası — ilk geri yükleme noktan — oluştu. Darboğazın önce 'Source' sonra 'Target' göstermesi normal: okuma bitti, yazma sürüyordu. Ekranı incele; hazır olduğunda <b>Next</b> ile devam et.", "iyi");
+      document.getElementById("oturumDevam").hidden = false;
     }
   }, 130);
 }
