@@ -327,6 +327,11 @@
 
   .puanUcus { position: fixed; z-index: 50; font-weight: 800; font-size: 18px; pointer-events: none; animation: ucus 1.2s ease-out forwards; }
   @keyframes ucus { 0% { opacity: 0; transform: translateY(6px); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-26px); } }
+
+  /* alt bilgi: sürüm + ziyaret sayacı */
+  .altBilgi { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--cizgi); display: flex; align-items: center; gap: 14px; color: var(--soluk); font-size: 12.5px; flex-wrap: wrap; }
+  .surumPul { border: 1px solid var(--vg-cizgi); background: var(--vg-acik); color: var(--vg); border-radius: 999px; padding: 3px 11px; font-weight: 700; font-size: 11.5px; letter-spacing: .5px; }
+  .altBilgi b { color: var(--metin); font-variant-numeric: tabular-nums; }
 </style>
 
 <div class="wrap">
@@ -352,6 +357,12 @@
         <button class="btnP" onclick="labAc()">Lab'ı Başlat →</button>
       </div>
     </article>
+
+    <footer class="altBilgi">
+      <span class="surumPul" id="surumPul">Beta 1.0</span>
+      <span>Veeam ile Veri Dayanıklılığı Platformu</span>
+      <span id="sayac" hidden>· 👥 <b id="sayacDeger">—</b> ziyaret</span>
+    </footer>
   </section>
 
   <!-- ==================== LAB ==================== -->
@@ -607,6 +618,23 @@
 
 <script>
 "use strict";
+
+/* ==================== SÜRÜM + ZİYARET SAYACI ==================== */
+const SURUM = "Beta 1.0";
+document.getElementById("surumPul").textContent = SURUM;
+(async function sayacYukle() {
+  /* Sayaç verisi Abacus servisinde tutulur: site güncellemeleri sayacı sıfırlamaz.
+     Aynı tarayıcı aynı gün içinde tekrar sayılmaz (localStorage). */
+  const bugun = new Date().toISOString().slice(0, 10);
+  const tip = localStorage.getItem("sayacGun") === bugun ? "get" : "hit";
+  try {
+    const y = await fetch("https://abacus.jasoncameron.dev/" + tip + "/backup-heroes-bulenttolu/ziyaret");
+    const j = await y.json();
+    if (tip === "hit") localStorage.setItem("sayacGun", bugun);
+    document.getElementById("sayacDeger").textContent = (j.value ?? 0).toLocaleString("tr-TR");
+    document.getElementById("sayac").hidden = false;
+  } catch { /* servis erişilemezse sayaç sessizce gizli kalır */ }
+})();
 
 /* ==================== GEZINTI ==================== */
 function labAc() {
