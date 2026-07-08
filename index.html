@@ -353,6 +353,7 @@
           <span class="etiket">VBR Web UI</span>
           <span class="etiket">Puanlı</span>
           <span class="etiket">~5 dk</span>
+          <span class="etiket" id="labSayacKart" hidden>👥 —</span>
         </div>
         <button class="btnP" onclick="labAc()">Lab'ı Başlat →</button>
       </div>
@@ -370,7 +371,10 @@
     <div class="labArac">
       <button class="geri" onclick="anaSayfa()">← Platforma Dön</button>
       <span class="rozetcik">Use Case · SQL VM Ajansız Yedekleme</span>
-      <span class="puanKutu">PUAN <b id="puanGoster">0</b></span>
+      <span style="display:flex; gap:8px; align-items:center;">
+        <span class="puanKutu" id="labSayacUst" hidden title="Bu lab'ı başlatan kişi sayısı">👥 <b>—</b></span>
+        <span class="puanKutu">PUAN <b id="puanGoster">0</b></span>
+      </span>
     </div>
 
     <!-- brifing -->
@@ -636,6 +640,23 @@ document.getElementById("surumPul").textContent = SURUM;
   } catch { /* servis erişilemezse sayaç sessizce gizli kalır */ }
 })();
 
+/* lab başına sayaç: lab'ı kaç kişi başlattı */
+function labSayacGoster(deger) {
+  const metin = (deger ?? 0).toLocaleString("tr-TR");
+  const kart = document.getElementById("labSayacKart");
+  kart.textContent = "👥 " + metin + " başlatma"; kart.hidden = false;
+  const ust = document.getElementById("labSayacUst");
+  ust.innerHTML = "👥 <b>" + metin + "</b>"; ust.hidden = false;
+}
+async function labSayac(tip) {
+  try {
+    const y = await fetch("https://abacus.jasoncameron.dev/" + tip + "/backup-heroes-bulenttolu/lab-sql-vm-yedekleme");
+    const j = await y.json();
+    if (typeof j.value === "number") labSayacGoster(j.value);
+  } catch { /* servis erişilemezse gizli kalır */ }
+}
+labSayac("get");
+
 /* ==================== GEZINTI ==================== */
 function labAc() {
   document.getElementById("home").hidden = true;
@@ -643,6 +664,11 @@ function labAc() {
   ekranGoster("labGiris");
   puan = 0; puanYaz();
   history.replaceState(null, "", "#sql-vm-yedekleme");
+  const bugun = new Date().toISOString().slice(0, 10);
+  if (localStorage.getItem("labSayacGun") !== bugun) {
+    localStorage.setItem("labSayacGun", bugun);
+    labSayac("hit");
+  }
   window.scrollTo({ top: 0 });
 }
 function anaSayfa() {
@@ -656,7 +682,6 @@ function rotaIsle() {
   if (location.hash.replace(/^#\/?/, "") === "sql-vm-yedekleme") labAc();
 }
 window.addEventListener("hashchange", rotaIsle);
-rotaIsle();
 function ekranGoster(id) {
   ["labGiris", "labPencere", "labBitis"].forEach(e => document.getElementById(e).hidden = (e !== id));
 }
@@ -1302,6 +1327,9 @@ function bitir() {
   document.getElementById("rozetYazi").textContent = yazi;
   document.getElementById("sonPuan").textContent = p + " / 100";
 }
+
+/* açılış rotası: derin bağlantı, tüm tanımlar yüklendikten sonra işlenmeli */
+rotaIsle();
 </script>
 </body>
 </html>
