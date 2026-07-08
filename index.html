@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backup Heroes — Heroes Start Here</title>
+</head>
+<body>
+<style>
+  :root {
+    /* Veeam web UI paleti (VBR 13 web konsolundan) */
+    --vg-bar: #166b38;      /* üst bar koyu yeşili */
+    --vg: #17803f;          /* buton / link / vurgu yeşili */
+    --vg-koyu: #12662f;
+    --vg-acik: #e7f4ec;     /* seçim açık yeşili */
+    --vg-cizgi: #bfe3cd;
+    --sayfa: #eef1f0;       /* platform zemini (yeşile çalan nötr) */
+    --beyaz: #ffffff;
+    --zemin2: #f5f6f6;      /* panel gri */
+    --cizgi: #d9dcdb;
+    --metin: #1f2428;
+    --soluk: #676e6a;
+    --mavi: #2f80ed;
+    --amber: #b97a08;
+    --amber-a: #fdf3df;
+    --kirmizi: #c9303e;
+    --kirmizi-a: #fdeaec;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--sayfa);
+    color: var(--metin);
+    padding: 28px 16px 60px;
+  }
+  .mono { font-family: "Cascadia Code", Consolas, monospace; }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  button { font-family: inherit; }
+  :focus-visible { outline: 2px solid var(--mavi); outline-offset: 2px; }
+
+  .rozetcik {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1.4px;
+    color: var(--vg); text-transform: uppercase;
+    border: 1px solid var(--vg-cizgi); background: var(--vg-acik);
+    padding: 6px 14px; border-radius: 999px;
+  }
+  .rozetcik .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: nabiz 1.8s infinite; }
+  @keyframes nabiz { 0%,100% { box-shadow: 0 0 0 0 #17803f44; } 50% { box-shadow: 0 0 0 7px #17803f00; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01s !important; transition-duration: .01s !important; }
+  }
+
+  .btnP {
+    display: inline-block; cursor: pointer; border: 1px solid var(--vg-koyu); border-radius: 8px;
+    font-size: 15px; font-weight: 600; padding: 11px 26px; color: #fff;
+    background: var(--vg); transition: background .12s, transform .12s;
+  }
+  .btnP:hover:not(:disabled) { background: var(--vg-koyu); transform: translateY(-1px); }
+  .btnP:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ================= PLATFORM ANA SAYFA ================= */
+  #home h1 { font-size: clamp(28px, 4.5vw, 40px); font-weight: 700; margin: 18px 0 8px; text-wrap: balance; }
+  #home .alt { font-size: 16.5px; color: var(--soluk); max-width: 640px; line-height: 1.65; margin-bottom: 34px; }
+  .bolumBaslik { display: flex; align-items: center; gap: 14px; margin: 0 0 14px; }
+  .bolumBaslik h2 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--soluk); font-weight: 700; white-space: nowrap; }
+  .bolumBaslik .cizgi { flex: 1; height: 1px; background: var(--cizgi); }
+
+  .ucKart {
+    background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 14px;
+    padding: 26px 28px; max-width: 660px; display: flex; gap: 22px; align-items: flex-start;
+    box-shadow: 0 2px 10px #0f2b1a0d; transition: box-shadow .15s, border-color .15s;
+  }
+  .ucKart:hover { border-color: var(--vg-cizgi); box-shadow: 0 8px 24px #0f2b1a14; }
+  .ucKart .ikon {
+    width: 58px; height: 58px; border-radius: 13px; flex-shrink: 0;
+    background: var(--vg-acik); border: 1px solid var(--vg-cizgi);
+    display: flex; align-items: center; justify-content: center; font-size: 28px;
+  }
+  .ucKart h3 { font-size: 19px; margin-bottom: 6px; }
+  .ucKart p { font-size: 14px; color: var(--soluk); line-height: 1.65; margin-bottom: 14px; }
+  .etiketler { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 16px; }
+  .etiket { font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--zemin2); color: var(--soluk); border: 1px solid var(--cizgi); }
+  .etiket.yesil { background: var(--vg-acik); color: var(--vg); border-color: var(--vg-cizgi); }
+
+  /* ================= LAB ÜST ARAÇ ÇUBUĞU ================= */
+  .labArac { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+  .geri {
+    cursor: pointer; background: var(--beyaz); border: 1px solid var(--cizgi); color: var(--metin);
+    border-radius: 9px; padding: 8px 16px; font-size: 14px; font-weight: 600;
+  }
+  .geri:hover { border-color: var(--vg); color: var(--vg); }
+  .puanKutu { font-size: 12.5px; color: var(--soluk); background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 999px; padding: 7px 16px; }
+  .puanKutu b { color: var(--vg); font-size: 17px; font-variant-numeric: tabular-nums; }
+
+  .kartAcik {
+    background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 16px;
+    padding: 30px; box-shadow: 0 4px 18px #0f2b1a0f;
+  }
+  #labGiris h2 { font-size: clamp(24px, 4vw, 32px); margin: 14px 0 10px; text-wrap: balance; }
+  #labGiris .alt { color: var(--soluk); font-size: 15.5px; line-height: 1.7; max-width: 640px; margin-bottom: 22px; }
+  #labGiris .alt b { color: var(--metin); }
+  .ozet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; max-width: 620px; }
+  .ozet div { background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 12px; padding: 14px; text-align: center; }
+  .ozet b { display: block; font-size: 20px; color: var(--vg); }
+  .ozet span { font-size: 12.5px; color: var(--soluk); }
+
+  /* ================= SİMÜLE TARAYICI + VEEAM WEB UI ================= */
+  .tarayici { border: 1px solid var(--cizgi); border-radius: 12px; overflow: hidden; background: var(--beyaz); box-shadow: 0 10px 34px #0f2b1a17; }
+  .tarayiciBar { display: flex; align-items: center; gap: 10px; background: #e6e9e8; padding: 8px 14px; border-bottom: 1px solid var(--cizgi); }
+  .tarayiciBar .noktalar { display: flex; gap: 6px; }
+  .tarayiciBar .noktalar span { width: 11px; height: 11px; border-radius: 50%; background: #c8cdcb; }
+  .tarayiciBar .url {
+    flex: 1; max-width: 460px; background: var(--beyaz); border: 1px solid var(--cizgi);
+    border-radius: 999px; font-size: 12px; color: var(--soluk); padding: 5px 14px;
+    font-family: "Cascadia Code", Consolas, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tarayiciBar .url b { color: var(--vg); font-weight: 600; }
+
+  .vbrKaydir { overflow-x: auto; }
+  .vbrPencere { min-width: 860px; position: relative; }
+
+  /* yeşil üst bar */
+  .vbrBar { display: flex; align-items: center; gap: 12px; background: var(--vg-bar); color: #fff; padding: 12px 18px; }
+  .vbrBar .logo { font-size: 17px; opacity: .95; }
+  .vbrBar .baslik { font-size: 16.5px; font-weight: 600; letter-spacing: .2px; }
+  .vbrBar .sag { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 13px; opacity: .95; }
+  .vbrBar .zil { position: relative; }
+  .vbrBar .zil::after { content: "1"; position: absolute; top: -7px; right: -9px; background: #d33; color: #fff; font-size: 9.5px; font-weight: 700; border-radius: 999px; padding: 1px 5px; }
+
+  /* alt başlık şeridi */
+  .vbrSerit { display: flex; align-items: center; gap: 14px; background: var(--zemin2); border-bottom: 1px solid var(--cizgi); padding: 13px 18px; }
+  .vbrSerit .geriLink { color: var(--metin); font-size: 14px; cursor: default; }
+  .vbrSerit .dikey { width: 1px; height: 20px; background: var(--cizgi); }
+  .vbrSerit h2 { font-size: 18px; font-weight: 600; }
+  .vbrSerit .kapat { margin-left: auto; color: var(--soluk); font-size: 17px; cursor: default; }
+
+  /* sihirbaz düzeni */
+  .vbrGovde { display: grid; grid-template-columns: 190px 1fr; min-height: 470px; background: var(--beyaz); }
+  .ray { border-right: 1px solid var(--cizgi); padding: 20px 0; }
+  .adim { display: flex; align-items: center; gap: 11px; padding: 11px 18px; font-size: 14px; color: var(--metin); border-left: 3px solid transparent; }
+  .adim .yuvarlak {
+    width: 19px; height: 19px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid #9aa39e; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; background: var(--beyaz);
+  }
+  .adim.aktif { border-left-color: var(--vg); color: var(--vg); font-weight: 600; background: #17803f08; }
+  .adim.aktif .yuvarlak { background: var(--vg); border-color: var(--vg); color: #fff; }
+  .adim.bitti { color: var(--metin); }
+  .adim.bitti .yuvarlak { border-color: var(--vg); color: var(--vg); }
+
+  .sahne { padding: 0; display: flex; flex-direction: column; }
+  .sahneBaslik { padding: 20px 26px 16px; border-bottom: 1px solid var(--cizgi); }
+  .sahneBaslik h3 { font-size: 19px; font-weight: 600; margin-bottom: 4px; }
+  .sahneBaslik p { font-size: 13px; color: var(--soluk); line-height: 1.55; max-width: 620px; }
+  .sahneIc { padding: 22px 26px; flex: 1; }
+
+  .vbrAlt { display: flex; justify-content: flex-end; align-items: center; gap: 10px; border-top: 1px solid var(--cizgi); background: var(--beyaz); padding: 14px 26px; }
+  .btnGriB {
+    cursor: pointer; background: var(--beyaz); border: 1px solid #b8bdbb; color: var(--metin);
+    border-radius: 8px; font-size: 14px; font-weight: 600; padding: 10px 22px;
+  }
+  .btnGriB:hover:not(:disabled) { border-color: var(--metin); }
+  .btnGriB:disabled { opacity: .4; cursor: not-allowed; }
+  .btnYesil {
+    cursor: pointer; background: var(--vg); border: 1px solid var(--vg-koyu); color: #fff;
+    border-radius: 8px; font-size: 14px; font-weight: 600; padding: 10px 26px;
+  }
+  .btnYesil:hover { background: var(--vg-koyu); }
+  .btnDuz { cursor: pointer; background: none; border: none; color: var(--metin); font-size: 14px; font-weight: 600; padding: 10px 14px; }
+  .btnDuz:hover { color: var(--vg); }
+
+  /* form elemanları — gerçek web UI görünümü */
+  .alanEtiket { display: block; font-size: 13.5px; color: var(--metin); margin: 0 0 6px; }
+  .girdi {
+    width: 100%; max-width: 560px; background: var(--beyaz); border: 1px solid #b8bdbb;
+    border-radius: 9px; color: var(--metin); font-size: 14px; padding: 10px 13px; font-family: inherit;
+  }
+  .girdi:focus { outline: none; border-color: var(--vg); box-shadow: 0 0 0 1px var(--vg); }
+  textarea.girdi { min-height: 110px; resize: vertical; }
+  select.girdi { cursor: pointer; }
+  .alanGrup { margin-bottom: 18px; }
+  .satirIc { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .yesilLink { color: var(--vg); font-size: 13.5px; font-weight: 600; cursor: pointer; background: none; border: none; padding: 0; }
+  .yesilLink:hover { text-decoration: underline; }
+  .grinot { font-size: 12.5px; color: var(--soluk); }
+
+  .onay { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; cursor: pointer; max-width: 640px; }
+  .onay input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--vg); cursor: pointer; }
+  .onay .ad { font-size: 14px; }
+  .onay small { display: block; color: var(--soluk); font-size: 12.5px; line-height: 1.55; margin-top: 3px; }
+
+  .radyo { display: flex; align-items: flex-start; gap: 10px; padding: 10px 13px; border: 1px solid var(--cizgi); border-radius: 9px; margin-bottom: 9px; cursor: pointer; max-width: 620px; transition: border-color .12s, background .12s; }
+  .radyo:hover { border-color: var(--vg); }
+  .radyo input { margin-top: 3px; accent-color: var(--vg); }
+  .radyo .ad { font-size: 13.5px; font-weight: 600; }
+  .radyo small { display: block; color: var(--soluk); font-size: 12px; margin-top: 2px; line-height: 1.5; }
+  .radyo.secili { border-color: var(--vg); background: var(--vg-acik); }
+  .radyo.hatali { border-color: var(--kirmizi); background: var(--kirmizi-a); animation: salla .35s; }
+  @keyframes salla { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+  .bolumSerit { background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 7px; font-size: 13px; font-weight: 700; padding: 8px 13px; margin: 18px 0 12px; max-width: 640px; }
+
+  /* VM tablosu ve araç çubuğu */
+  .arac { display: flex; gap: 4px; margin-bottom: 12px; }
+  .aracBtn { cursor: pointer; background: none; border: none; border-radius: 7px; font-size: 13.5px; font-weight: 600; color: var(--metin); padding: 8px 13px; }
+  .aracBtn:hover:not(:disabled) { background: var(--vg-acik); color: var(--vg); }
+  .aracBtn:disabled { color: #b0b6b2; cursor: default; }
+  .vmTablo { width: 100%; max-width: 700px; border-collapse: collapse; font-size: 13.5px; }
+  .vmTablo th { text-align: left; font-size: 12px; color: var(--soluk); font-weight: 600; border-bottom: 1px solid var(--cizgi); padding: 8px 10px; }
+  .vmTablo td { padding: 10px; border-bottom: 1px solid var(--zemin2); }
+  .bosNot { color: var(--soluk); font-size: 13.5px; padding: 14px 10px; }
+
+  /* Add Objects kayar paneli */
+  .ortu { position: absolute; inset: 0; background: #1f242833; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 5; }
+  .ortu.acik { opacity: 1; pointer-events: auto; }
+  .kayarPanel {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 56%; min-width: 420px;
+    background: var(--beyaz); border-left: 1px solid var(--cizgi); box-shadow: -14px 0 34px #0f2b1a1f;
+    transform: translateX(102%); transition: transform .25s ease; z-index: 6;
+    display: flex; flex-direction: column;
+  }
+  .kayarPanel.acik { transform: translateX(0); }
+  .kayarBaslik { display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--cizgi); }
+  .kayarBaslik h4 { font-size: 16.5px; font-weight: 600; }
+  .kayarBaslik .kapatX { margin-left: auto; cursor: pointer; background: none; border: none; font-size: 16px; color: var(--soluk); }
+  .kayarIc { padding: 16px 20px; flex: 1; overflow-y: auto; }
+  .aramaSatir { display: flex; gap: 8px; margin-bottom: 14px; }
+  .aramaSatir .girdi { max-width: none; }
+  .agacSatir { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 7px; font-size: 13.5px; cursor: pointer; }
+  .agacSatir:hover { background: var(--zemin2); }
+  .agacSatir input { accent-color: var(--vg); width: 15px; height: 15px; cursor: pointer; }
+  .agacSatir.vm.isaretli { background: var(--vg-acik); }
+  .agacSatir .boyut { margin-left: auto; font-size: 11.5px; color: var(--soluk); font-variant-numeric: tabular-nums; }
+  .kayarAlt { display: flex; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--cizgi); }
+
+  /* ================= EĞİTMEN PANELİ ================= */
+  .egitmen {
+    margin-top: 16px; border-radius: 13px; padding: 15px 18px;
+    background: var(--beyaz); border: 1px solid var(--cizgi); border-left: 4px solid var(--mavi);
+    display: flex; gap: 13px; align-items: flex-start; box-shadow: 0 3px 12px #0f2b1a0d;
+    transition: border-color .3s;
+  }
+  .egitmen.vurgu { border-left-color: var(--vg); background: #f4faf6; }
+  .egitmen.uyari { border-left-color: var(--amber); background: var(--amber-a); }
+  .egitmen .avatar { font-size: 25px; line-height: 1; }
+  .egitmen .rol { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--mavi); font-weight: 700; margin-bottom: 4px; }
+  .egitmen.vurgu .rol { color: var(--vg); }
+  .egitmen.uyari .rol { color: var(--amber); }
+  .egitmen p { font-size: 14px; line-height: 1.65; color: #3a423d; }
+  .egitmen p b { color: var(--metin); }
+  .cip {
+    cursor: pointer; background: var(--vg-acik); color: var(--vg); border: 1px solid var(--vg-cizgi);
+    border-radius: 999px; font-size: 12.5px; font-weight: 600; padding: 5px 13px; margin-top: 8px;
+  }
+  .cip:hover { background: #d9efe2; }
+
+  /* ================= GÖREV OTURUMU (ANİMASYON) ================= */
+  .oturumUst { display: flex; align-items: center; gap: 12px; padding: 18px 26px 4px; }
+  .oturumUst h3 { font-size: 18px; font-weight: 600; }
+  .durumPul { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 999px; background: var(--amber-a); color: var(--amber); border: 1px solid #ecd9b0; }
+  .durumPul.bittiP { background: var(--vg-acik); color: var(--vg); border-color: var(--vg-cizgi); }
+  .oturumIc { padding: 14px 26px 24px; }
+
+  .akisSahne { background: #fbfcfb; border: 1px solid var(--cizgi); border-radius: 12px; overflow-x: auto; }
+  .akisSahne svg { display: block; min-width: 640px; width: 100%; height: auto; }
+
+  .statlar { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 14px 0 4px; }
+  .stat { background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 10px; padding: 10px 13px; }
+  .stat .ad { font-size: 11.5px; color: var(--soluk); margin-bottom: 4px; }
+  .stat b { font-size: 17px; font-variant-numeric: tabular-nums; }
+  .stat b.yesil { color: var(--vg); }
+  .stat b.mavi { color: var(--mavi); }
+  .stat b.turuncu { color: var(--amber); }
+  .cubukDis { height: 9px; border-radius: 6px; background: var(--zemin2); border: 1px solid var(--cizgi); overflow: hidden; margin: 10px 0 16px; }
+  .cubukIc { height: 100%; width: 0%; border-radius: 6px; background: linear-gradient(90deg, var(--vg-koyu), var(--vg)); transition: width .4s ease; }
+
+  .asamalar { display: flex; flex-direction: column; gap: 7px; margin: 4px 0 16px; }
+  .asama { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--soluk); }
+  .asama .isaret { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; background: var(--beyaz); border: 2px solid var(--cizgi); font-weight: 700; }
+  .asama.aktifA { color: var(--metin); font-weight: 600; }
+  .asama.aktifA .isaret { border-color: var(--amber); color: var(--amber); animation: nabiz 1.4s infinite; }
+  .asama.bittiA { color: var(--vg); }
+  .asama.bittiA .isaret { background: var(--vg-acik); border-color: var(--vg); color: var(--vg); }
+
+  .terminal {
+    background: #101613; border: 1px solid #223328; border-radius: 11px;
+    font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; line-height: 1.8;
+    padding: 13px 16px; height: 122px; overflow: hidden; color: #93a89b;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .terminal .i { color: #35c46e; } .terminal .w { color: #dfa927; }
+
+  /* ================= BİTİŞ ================= */
+  #labBitis { text-align: center; }
+  #labBitis .rozet { font-size: 56px; margin: 6px 0; }
+  #labBitis h2 { font-size: 28px; margin-bottom: 6px; }
+  #labBitis .altYazi { color: var(--soluk); font-size: 15px; margin-bottom: 18px; }
+  .skorBuyuk { font-size: 42px; font-weight: 800; color: var(--vg); font-variant-numeric: tabular-nums; }
+  .dersler { text-align: left; max-width: 580px; margin: 22px auto; display: flex; flex-direction: column; gap: 10px; }
+  .ders { display: flex; gap: 11px; background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 12px; padding: 13px 16px; font-size: 14px; line-height: 1.6; color: #3a423d; }
+  .ders b { color: var(--metin); }
+
+  .puanUcus { position: fixed; z-index: 50; font-weight: 800; font-size: 18px; pointer-events: none; animation: ucus 1.2s ease-out forwards; }
+  @keyframes ucus { 0% { opacity: 0; transform: translateY(6px); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-26px); } }
+</style>
+
+<div class="wrap">
+
+  <!-- ==================== PLATFORM ANA SAYFA ==================== -->
+  <section id="home">
+    <span class="rozetcik"><span class="dot"></span> Backup Heroes · Veeam Eğitim Platformu</span>
+    <h1>Heroes Start Here 🦸</h1>
+    <p class="alt">Veriyi korumayı uygulayarak öğren. Her modül, gerçek Veeam web arayüzünün birebir simülasyonunda seni adım adım ilerletir; her tıklamanın nedenini anlatır. Kahramanlık puanla, rozetle taçlanır.</p>
+
+    <div class="bolumBaslik"><h2>Use Case</h2><div class="cizgi"></div></div>
+    <article class="ucKart">
+      <div class="ikon">🛡️</div>
+      <div>
+        <h3>SQL VM Ajansız Yedekleme (Agentless Backup)</h3>
+        <p>Veeam Backup &amp; Replication web konsolunda, üretimdeki SQL Server sanal makinesi için ajan kurmadan, uygulama tutarlı bir yedekleme görevi oluştur. Gerçek "New Backup Job" sihirbazının birebir simülasyonu — sonunda veri akışını canlı izle.</p>
+        <div class="etiketler">
+          <span class="etiket yesil">İnteraktif Lab</span>
+          <span class="etiket">VBR Web UI</span>
+          <span class="etiket">Puanlı</span>
+          <span class="etiket">~5 dk</span>
+        </div>
+        <button class="btnP" onclick="labAc()">Lab'ı Başlat →</button>
+      </div>
+    </article>
+  </section>
+
+  <!-- ==================== LAB ==================== -->
+  <section id="lab" hidden>
+    <div class="labArac">
+      <button class="geri" onclick="anaSayfa()">← Platforma Dön</button>
+      <span class="rozetcik">Use Case · SQL VM Ajansız Yedekleme</span>
+      <span class="puanKutu">PUAN <b id="puanGoster">0</b></span>
+    </div>
+
+    <!-- brifing -->
+    <div class="kartAcik" id="labGiris">
+      <span class="rozetcik"><span class="dot"></span> Görev Brifingi</span>
+      <h2>İlk SQL Yedekleme Görevini Oluştur</h2>
+      <p class="alt">Üretim SQL sunucusu <b class="mono">SQL-PROD-01</b> henüz yedeklenmiyor. Veeam Backup &amp; Replication <b>web konsoluna</b> bağlanacak ve gerçek arayüzün birebir kopyasında bir yedekleme görevi yazacaksın. Her adımda eğitmen paneli <b>neden</b> o seçimi yaptığımızı anlatır; doğru seçimler puan kazandırır, tuzaklar puan kaybettirir.</p>
+      <div class="ozet">
+        <div><b>6</b><span>Sihirbaz Adımı</span></div>
+        <div><b>~5 dk</b><span>Tahmini Süre</span></div>
+        <div><b>100</b><span>Maksimum Puan</span></div>
+      </div>
+      <button class="btnP" onclick="sihirbazBaslat()">🖥️ Web Konsola Bağlan</button>
+    </div>
+
+    <!-- simüle tarayıcı -->
+    <div id="labPencere" hidden>
+      <div class="tarayici">
+        <div class="tarayiciBar">
+          <div class="noktalar"><span></span><span></span><span></span></div>
+          <div class="url">🔒 https://<b>vbr01.sirket.local</b>:9443/backup-jobs/new</div>
+        </div>
+        <div class="vbrKaydir">
+        <div class="vbrPencere">
+          <div class="vbrBar">
+            <span class="logo">▦</span>
+            <span class="baslik">Veeam Backup &amp; Replication</span>
+            <span class="sag"><span>🖥️</span><span>👤 veeamadmin ▾</span><span class="zil">🔔</span><span>⚙️</span><span>❔</span></span>
+          </div>
+
+          <!-- SİHİRBAZ GÖRÜNÜMÜ -->
+          <div id="gorunumSihirbaz">
+            <div class="vbrSerit">
+              <span class="geriLink">‹ Back</span><span class="dikey"></span>
+              <h2>New Backup Job</h2>
+              <span class="kapat">✕</span>
+            </div>
+            <div class="vbrGovde">
+              <nav class="ray" id="adimRay" aria-label="Sihirbaz adımları"></nav>
+              <div class="sahne">
+                <div class="sahneBaslik">
+                  <h3 id="adimBaslik"></h3>
+                  <p id="adimAlt"></p>
+                </div>
+                <div class="sahneIc" id="adimIcerik"></div>
+                <div class="vbrAlt">
+                  <button class="btnGriB" id="btnGeri" onclick="adimGeri()">Previous</button>
+                  <button class="btnYesil" id="btnIleri" onclick="adimIleri()">Next</button>
+                  <button class="btnDuz">Cancel</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Add Objects kayar paneli -->
+            <div class="ortu" id="ortu" onclick="panelKapat()"></div>
+            <aside class="kayarPanel" id="kayarPanel" aria-label="Add Objects">
+              <div class="kayarBaslik"><h4>Add Objects</h4><button class="kapatX" onclick="panelKapat()">✕</button></div>
+              <div class="kayarIc">
+                <div class="aramaSatir">
+                  <select class="girdi" style="max-width:150px"><option>Everything</option></select>
+                  <input class="girdi" placeholder="Type in an object name on vcenter01.sirket.local" >
+                </div>
+                <div id="agac"></div>
+              </div>
+              <div class="kayarAlt">
+                <button class="btnYesil" onclick="nesneEkle()">Add</button>
+                <button class="btnDuz" onclick="panelKapat()">Cancel</button>
+              </div>
+            </aside>
+          </div>
+
+          <!-- GÖREV OTURUMU GÖRÜNÜMÜ -->
+          <div id="gorunumOturum" hidden>
+            <div class="vbrSerit">
+              <span class="geriLink">‹ Back</span><span class="dikey"></span>
+              <h2>Backup Job Session</h2>
+              <span class="kapat">✕</span>
+            </div>
+            <div class="oturumUst">
+              <h3 class="mono" id="oturumAd">SQL-PROD-Gunluk-Yedek</h3>
+              <span class="durumPul" id="oturumDurum">● Running</span>
+            </div>
+            <div class="oturumIc">
+              <div class="akisSahne">
+                <svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" aria-label="Yedekleme veri akışı animasyonu">
+                  <defs>
+                    <linearGradient id="boruG" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0" stop-color="#d9dcdb"/><stop offset="1" stop-color="#17803f66"/>
+                    </linearGradient>
+                  </defs>
+                  <path id="yol1" d="M 215 150 C 300 150 320 150 385 150" fill="none" stroke="url(#boruG)" stroke-width="4" stroke-dasharray="7 7"/>
+                  <path id="yol2" d="M 555 150 C 630 150 650 150 720 150" fill="none" stroke="url(#boruG)" stroke-width="4" stroke-dasharray="7 7"/>
+
+                  <!-- ESXi host -->
+                  <g>
+                    <rect x="55" y="75" width="160" height="150" rx="14" fill="#ffffff" stroke="#d9dcdb"/>
+                    <text x="135" y="102" text-anchor="middle" fill="#676e6a" font-size="12" font-weight="700">VMware ESXi</text>
+                    <rect x="75" y="115" width="120" height="58" rx="9" fill="#f5f6f6" stroke="#2f80ed88"/>
+                    <text x="135" y="139" text-anchor="middle" fill="#1f2428" font-size="12.5" font-weight="700" font-family="Consolas,monospace">SQL-PROD-01</text>
+                    <text x="135" y="158" text-anchor="middle" fill="#2f80ed" font-size="10.5">SQL Server 2022</text>
+                    <g id="snapRozet" opacity="0">
+                      <rect x="75" y="183" width="120" height="26" rx="7" fill="#fdf3df" stroke="#e3c98f"/>
+                      <text x="135" y="200" text-anchor="middle" fill="#b97a08" font-size="10.5" font-weight="700">📸 VSS Snapshot</text>
+                    </g>
+                  </g>
+
+                  <!-- Proxy -->
+                  <g>
+                    <rect x="385" y="90" width="170" height="120" rx="14" fill="#ffffff" stroke="#d9dcdb"/>
+                    <text x="470" y="117" text-anchor="middle" fill="#676e6a" font-size="12" font-weight="700">Backup Proxy</text>
+                    <text x="470" y="140" text-anchor="middle" fill="#1f2428" font-size="11.5">CBT ile okuma</text>
+                    <text x="470" y="160" text-anchor="middle" fill="#1f2428" font-size="11.5">Sıkıştırma + Tekilleştirme</text>
+                    <text id="oranYazi" x="470" y="188" text-anchor="middle" fill="#17803f" font-size="12" font-weight="700" font-family="Consolas,monospace">—</text>
+                  </g>
+
+                  <!-- Repository -->
+                  <g>
+                    <rect x="720" y="75" width="140" height="150" rx="14" fill="#ffffff" stroke="#d9dcdb"/>
+                    <text x="790" y="102" text-anchor="middle" fill="#676e6a" font-size="12" font-weight="700">REPO-REFS-01</text>
+                    <text x="790" y="120" text-anchor="middle" fill="#676e6a" font-size="10.5">ReFS · Fast Clone</text>
+                    <g font-family="Consolas,monospace">
+                      <rect x="740" y="132" width="100" height="60" rx="8" fill="#f5f6f6" stroke="#d9dcdb"/>
+                      <rect id="depoDolum" x="740" y="192" width="100" height="0" fill="#17803f2e"/>
+                      <text id="depoGB" x="790" y="167" text-anchor="middle" fill="#17803f" font-size="13" font-weight="700">0 GB</text>
+                    </g>
+                    <g id="vbkRozet" opacity="0">
+                      <rect x="740" y="200" width="100" height="22" rx="6" fill="#e7f4ec" stroke="#bfe3cd"/>
+                      <text x="790" y="215" text-anchor="middle" fill="#17803f" font-size="10" font-weight="700">.vbk oluştu ✓</text>
+                    </g>
+                  </g>
+
+                  <g id="paketler1" opacity="0">
+                    <circle r="6" fill="#2f80ed"><animateMotion dur="1.6s" repeatCount="indefinite"><mpath href="#yol1"/></animateMotion></circle>
+                    <circle r="4.5" fill="#2f80ed99"><animateMotion dur="1.6s" begin="0.55s" repeatCount="indefinite"><mpath href="#yol1"/></animateMotion></circle>
+                    <circle r="5" fill="#2f80edcc"><animateMotion dur="1.6s" begin="1.1s" repeatCount="indefinite"><mpath href="#yol1"/></animateMotion></circle>
+                  </g>
+                  <g id="paketler2" opacity="0">
+                    <circle r="5" fill="#17803f"><animateMotion dur="1.6s" repeatCount="indefinite"><mpath href="#yol2"/></animateMotion></circle>
+                    <circle r="3.5" fill="#17803f99"><animateMotion dur="1.6s" begin="0.8s" repeatCount="indefinite"><mpath href="#yol2"/></animateMotion></circle>
+                  </g>
+
+                  <text x="300" y="132" text-anchor="middle" fill="#2f80ed" font-size="10.5" font-weight="600">VM verisi</text>
+                  <text x="637" y="132" text-anchor="middle" fill="#17803f" font-size="10.5" font-weight="600">sıkıştırılmış veri</text>
+                </svg>
+              </div>
+
+              <div class="statlar">
+                <div class="stat"><div class="ad">İşlenen Veri</div><b id="stIslenen" class="mavi">0 GB</b></div>
+                <div class="stat"><div class="ad">Aktarılan (sıkıştırılmış)</div><b id="stAktarilan" class="yesil">0 GB</b></div>
+                <div class="stat"><div class="ad">Hız</div><b id="stHiz">— MB/s</b></div>
+                <div class="stat"><div class="ad">Darboğaz</div><b id="stDarbogaz" class="turuncu">—</b></div>
+              </div>
+
+              <div class="cubukDis"><div class="cubukIc" id="ilerleme"></div></div>
+              <div class="asamalar" id="asamalar"></div>
+              <div class="terminal" id="term"></div>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- eğitmen paneli -->
+      <div class="egitmen" id="egitmen">
+        <span class="avatar">👨‍🏫</span>
+        <div>
+          <div class="rol" id="egitmenRol">Eğitmen</div>
+          <p id="egitmenMetin"></p>
+          <div id="egitmenEk"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- bitiş -->
+    <div class="kartAcik" id="labBitis" hidden>
+      <div class="rozet" id="rozetIkon">🏆</div>
+      <h2>Görev Başarıyla Tamamlandı!</h2>
+      <p class="altYazi">SQL-PROD-01 için ilk geri yükleme noktası (restore point) oluşturuldu.</p>
+      <div class="skorBuyuk" id="sonPuan">0</div>
+      <p class="altYazi" id="rozetYazi"></p>
+      <div class="dersler">
+        <div class="ders">💡 <span><b>Application-aware processing</b> olmadan SQL yedeği "crash-consistent" olur — kurtarmada veritabanı tutarlılığı garanti edilmez. VSS ile "application-consistent" yedek aldık; ajan kurmaya gerek kalmadı.</span></div>
+        <div class="ders">📓 <span><b>İşlem günlüğü yedekleme</b> sayesinde veritabanını yalnızca gece 22:00'a değil, gün içinde <b>istediğin dakikaya</b> (point-in-time) döndürebilirsin.</span></div>
+        <div class="ders">🚚 <span>Veri akışı her zaman <b>Kaynak → Proxy → Depo</b> şeklindedir. Proxy veriyi CBT ile okur, sıkıştırır ve tekilleştirir — ağdan çok daha az veri geçer.</span></div>
+        <div class="ders">📦 <span><b>Depo seçerken</b> kapasiteyi saklama süresiyle birlikte hesapla: 120 GB'lık VM × 14 gün, 195 GB boş alana sığmaz. ReFS/XFS depolar sentetik tam yedekleri blok klonlama ile saniyeler içinde oluşturur.</span></div>
+        <div class="ders">🕙 <span><b>Yedekleme penceresi:</b> Görevleri mesai dışına planlayarak üretim sistemlerine etkiyi en aza indirdik.</span></div>
+      </div>
+      <button class="btnP" onclick="anaSayfa()">← Platforma Dön</button>
+      <p style="margin-top:16px; font-size:13px; color:var(--soluk);">Sıradaki use case: <b style="color:var(--vg)">Kurtarma — O Veritabanını Geri Getir</b> (yakında)</p>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+
+/* ==================== GEZINTI ==================== */
+function labAc() {
+  document.getElementById("home").hidden = true;
+  document.getElementById("lab").hidden = false;
+  ekranGoster("labGiris");
+  puan = 0; puanYaz();
+  window.scrollTo({ top: 0 });
+}
+function anaSayfa() {
+  document.getElementById("lab").hidden = true;
+  document.getElementById("home").hidden = false;
+  window.scrollTo({ top: 0 });
+}
+function ekranGoster(id) {
+  ["labGiris", "labPencere", "labBitis"].forEach(e => document.getElementById(e).hidden = (e !== id));
+}
+
+/* ==================== PUAN ==================== */
+let puan = 0;
+function puanYaz() { document.getElementById("puanGoster").textContent = puan; }
+function puanVer(n, x, y) {
+  puan = Math.max(0, puan + n); puanYaz();
+  const u = document.createElement("div");
+  u.className = "puanUcus";
+  u.textContent = (n > 0 ? "+" : "") + n;
+  u.style.color = n > 0 ? "var(--vg)" : "var(--kirmizi)";
+  u.style.left = (x || innerWidth / 2) + "px";
+  u.style.top = (y || 160) + "px";
+  document.body.appendChild(u);
+  setTimeout(() => u.remove(), 1200);
+}
+
+/* ==================== EĞİTMEN ==================== */
+function egitmenSoyle(html, ton, ekHtml) {
+  const e = document.getElementById("egitmen");
+  e.classList.remove("vurgu", "uyari");
+  if (ton === "iyi") e.classList.add("vurgu");
+  if (ton === "uyari") e.classList.add("uyari");
+  document.getElementById("egitmenRol").textContent = ton === "uyari" ? "Dikkat!" : (ton === "iyi" ? "Harika seçim!" : "Eğitmen");
+  document.getElementById("egitmenMetin").innerHTML = html;
+  document.getElementById("egitmenEk").innerHTML = ekHtml || "";
+}
+
+/* ==================== SİHİRBAZ DURUMU ==================== */
+const durum = {
+  gorevAdi: "", vmEklendi: false, depo: null, saklama: 7,
+  aap: false, logYontem: null, kimlik: null, saat: null,
+};
+let aktifAdim = 0;
+
+const adimlar = [
+  { ad: "Name", baslik: "Name", alt: "Type in a name and description for this backup job." },
+  { ad: "Virtual Machines", baslik: "Virtual Machines", alt: "Select virtual machines to process via container, or granularly. Container provides dynamic selection that automatically changes as you add new VMs into the container." },
+  { ad: "Storage", baslik: "Storage", alt: "Specify processing proxy server to be used for source data retrieval, backup repository to store the backup files produced by this job and customize advanced job settings if required." },
+  { ad: "Guest Processing", baslik: "Guest Processing", alt: "Choose guest OS processing options available for running VMs." },
+  { ad: "Schedule", baslik: "Schedule", alt: "Specify the job scheduling options. If you do not set the schedule, the job will need to be controlled manually." },
+  { ad: "Summary", baslik: "Summary", alt: "Review the job settings and click Finish to create the job." },
+];
+
+function sihirbazBaslat() {
+  ekranGoster("labPencere");
+  document.getElementById("gorunumSihirbaz").hidden = false;
+  document.getElementById("gorunumOturum").hidden = true;
+  aktifAdim = 0;
+  Object.assign(durum, { gorevAdi: "", vmEklendi: false, depo: null, saklama: 7, aap: false, logYontem: null, kimlik: null, saat: null });
+  const ray = document.getElementById("adimRay");
+  ray.innerHTML = "";
+  adimlar.forEach((a) => {
+    const d = document.createElement("div");
+    d.className = "adim";
+    d.innerHTML = `<span class="yuvarlak"></span> ${a.ad}`;
+    ray.appendChild(d);
+  });
+  adimCiz();
+  window.scrollTo({ top: 0 });
+}
+
+function adimCiz() {
+  document.getElementById("adimRay").querySelectorAll(".adim").forEach((d, i) => {
+    d.classList.toggle("aktif", i === aktifAdim);
+    d.classList.toggle("bitti", i < aktifAdim);
+    d.querySelector(".yuvarlak").textContent = i < aktifAdim ? "✓" : (i === aktifAdim ? "›" : "");
+  });
+  const a = adimlar[aktifAdim];
+  document.getElementById("adimBaslik").textContent = a.baslik;
+  document.getElementById("adimAlt").textContent = a.alt;
+  document.getElementById("btnGeri").disabled = aktifAdim === 0;
+  document.getElementById("btnIleri").textContent = aktifAdim === adimlar.length - 1 ? "Finish" : "Next";
+  icerikCiz();
+}
+
+/* ==================== ADIM İÇERİKLERİ ==================== */
+function icerikCiz() {
+  const ic = document.getElementById("adimIcerik");
+  switch (aktifAdim) {
+
+    case 0: /* --------- NAME --------- */
+      ic.innerHTML = `
+        <div class="alanGrup">
+          <label class="alanEtiket" for="gorevAdi">Name:</label>
+          <input class="girdi" id="gorevAdi" placeholder="New Backup Job" value="${durum.gorevAdi}">
+        </div>
+        <div class="alanGrup">
+          <label class="alanEtiket" for="gorevAcik">Description:</label>
+          <textarea class="girdi" id="gorevAcik" placeholder="Created by VEEAM\\veeamadmin">Üretim SQL sunucusunun günlük uygulama tutarlı yedeği</textarea>
+        </div>
+        <label class="onay">
+          <input type="checkbox" id="oncelik">
+          <span><span class="ad">High priority</span>
+          <small>Backup infrastructure resources are offered to high priority jobs first. Use this option for jobs sensitive to the start time, or jobs with strict RPO requirements.</small></span>
+        </label>`;
+      document.getElementById("gorevAdi").oninput = (e) => { durum.gorevAdi = e.target.value.trim(); };
+      document.getElementById("oncelik").onchange = (e) => {
+        egitmenSoyle(e.target.checked
+          ? "<b>High priority</b> işaretlendi: bu görev, proxy ve depo kaynakları için sıra beklerken diğer görevlerin önüne geçer. Sıkı RPO'su olan kritik iş yüklerinde (üretim SQL gibi) mantıklı bir tercih — zorunlu değil."
+          : "High priority kaldırıldı. Kaynak ataması standart sırayla yapılır.");
+      };
+      egitmenSoyle("Web konsolda <b>Home → Backup Job → Virtual machine</b> yolunu izledik ve sihirbaz açıldı. Göreve, içeriğini tek bakışta anlatan standart bir ad ver: <b>ne</b> yedekleniyor, <b>ne sıklıkla</b>?",
+        null, `<button class="cip" id="cipOner">💡 Önerilen adı yaz: SQL-PROD-Gunluk-Yedek</button>`);
+      document.getElementById("cipOner").onclick = (e) => {
+        const g = document.getElementById("gorevAdi");
+        g.value = "SQL-PROD-Gunluk-Yedek";
+        durum.gorevAdi = "SQL-PROD-Gunluk-Yedek";
+        puanVer(5, e.clientX, e.clientY);
+        egitmenSoyle("<b>Neden bu isim?</b> Onlarca görevin olduğu bir ortamda <b>SQL-PROD-Gunluk-Yedek</b> gibi bir ad; kapsamı, ortamı ve sıklığı tek bakışta söyler. Adlandırma standardı, işletme tarafında hayat kurtarır.", "iyi");
+      };
+      break;
+
+    case 1: /* --------- VIRTUAL MACHINES --------- */
+      ic.innerHTML = `
+        <div class="arac">
+          <button class="aracBtn" onclick="panelAc()">＋ Add</button>
+          <button class="aracBtn" disabled>🗑 Remove</button>
+          <button class="aracBtn" disabled>↑ Up</button>
+          <button class="aracBtn" disabled>↓ Down</button>
+        </div>
+        <table class="vmTablo">
+          <thead><tr><th style="width:26px"><input type="checkbox" disabled></th><th>Name</th><th>Type</th><th>Size</th></tr></thead>
+          <tbody id="vmSatirlar">
+            <tr><td colspan="4" class="bosNot">Choose at least one VM to proceed.</td></tr>
+          </tbody>
+        </table>`;
+      if (durum.vmEklendi) vmSatirYaz();
+      agacCiz();
+      egitmenSoyle("Gerçek arayüzdeki gibi: <b>＋ Add</b> düğmesine bas, açılan <b>Add Objects</b> panelinde vCenter envanterinden doğru sanal makineyi işaretleyip <b>Add</b> ile göreve ekle. Dikkat, listede tuzaklar var! 😉");
+      break;
+
+    case 2: /* --------- STORAGE --------- */
+      ic.innerHTML = `
+        <div class="alanGrup">
+          <label class="alanEtiket">Backup proxy:</label>
+          <div class="satirIc">
+            <input class="girdi" style="max-width:420px" value="Automatic selection" readonly>
+            <button class="yesilLink" id="proxySec">🖥 Choose</button>
+          </div>
+        </div>
+        <div class="alanGrup">
+          <label class="alanEtiket" for="depoSec">Backup repository:</label>
+          <select class="girdi" id="depoSec" style="max-width:520px">
+            <option value="default" ${durum.depo === "default" || !durum.depo ? "selected" : ""}>Default Backup Repository (Created by Veeam Backup)</option>
+            <option value="refs" ${durum.depo === "refs" ? "selected" : ""}>REPO-REFS-01 (ReFS, Fast Clone)</option>
+            <option value="lokal" ${durum.depo === "lokal" ? "selected" : ""}>PRX-01 Local Disk</option>
+          </select>
+          <div class="grinot" style="margin-top:6px" id="depoBilgi">🗄 194.9 GB free of 222.2 GB</div>
+        </div>
+        <div class="alanGrup satirIc">
+          <label class="alanEtiket" style="margin:0" for="saklama">Retention policy:</label>
+          <input class="girdi" id="saklama" type="number" min="3" max="60" value="${durum.saklama}" style="max-width:80px"> <span style="font-size:13.5px">days</span> <span class="grinot">ⓘ</span>
+        </div>
+        <label class="onay">
+          <input type="checkbox" id="gfs">
+          <span><span class="ad">Keep certain full backups longer for archival purposes <button class="yesilLink" id="gfsAyar" style="margin-left:6px">Configure</button></span>
+          <small>GFS retention policy is not configured</small></span>
+        </label>
+        <button class="yesilLink" id="gelismis">Advanced job settings</button>`;
+      durum.depo = durum.depo || "default";
+      const depoBilgi = { default: "🗄 194.9 GB free of 222.2 GB", refs: "🗄 4.2 TB free of 8.0 TB", lokal: "🗄 460 GB free of 500 GB" };
+      document.getElementById("proxySec").onclick = () => {
+        egitmenSoyle("<b>Neden Automatic selection?</b> Proxy, veriyi kaynaktan okuyup taşıyan bileşendir. Otomatik modda Veeam, o an için en verimli erişime sahip proxy'yi seçer ve yük dengelemesi yapar. Belirli bir proxy'yi sabitlemek yalnızca özel ağ/erişim senaryolarında gerekir.", "iyi");
+      };
+      document.getElementById("depoSec").onchange = (e) => {
+        const v = e.target.value;
+        document.getElementById("depoBilgi").textContent = depoBilgi[v];
+        if (v === "refs") {
+          if (durum.depo !== "refs") puanVer(15, innerWidth / 2, 300);
+          durum.depo = "refs";
+          egitmenSoyle("<b>Doğru depo!</b> Kapasiteyi saklama süresiyle birlikte hesapla: 120 GB VM × 14 gün, varsayılan depodaki 195 GB'a sığmaz. <b>REPO-REFS-01</b> hem yeterli alana sahip hem de ReFS <b>Fast Clone</b> ile sentetik tam yedekleri saniyeler içinde, veri kopyalamadan oluşturur.", "iyi");
+        } else {
+          durum.depo = v;
+          egitmenSoyle(v === "lokal"
+            ? "<b>Riskli seçim!</b> Yedeği, yedekleme altyapısının kendi diskine yazarsan tek donanım arızası hem sistemi hem yedeği götürür. 3-2-1 kuralının ilk ihlali burada başlar. Başka bir depo seç."
+            : "<b>Kapasiteye dikkat:</b> 194.9 GB boş alan; 120 GB'lık VM'in 14 günlük zinciri için yeterli değil. Görev bir süre sonra 'disk full' ile durur. Daha uygun bir depo seç.", "uyari");
+        }
+      };
+      document.getElementById("saklama").oninput = (e) => {
+        durum.saklama = +e.target.value || 7;
+        if (durum.saklama >= 14) egitmenSoyle("<b>" + durum.saklama + " gün saklama:</b> kaç geri yükleme noktası tutulacağını belirler. Kurumsal SQL için 14 gün yaygın bir başlangıçtır; yasal gereksinimler için GFS ile aylık/yıllık arşiv noktaları eklenebilir.");
+      };
+      document.getElementById("gfsAyar").onclick = (e) => {
+        e.preventDefault();
+        egitmenSoyle("<b>GFS (Grandfather-Father-Son):</b> Haftalık, aylık ve yıllık tam yedekleri normal saklama süresinden daha uzun tutar. Mevzuat gereği '1 yıl saklama' tarzı ihtiyaçlarda burayı yapılandırırsın. Bu lab'da gerekmiyor.");
+      };
+      document.getElementById("gelismis").onclick = () => {
+        egitmenSoyle("<b>Advanced job settings:</b> Sıkıştırma, blok boyutu, şifreleme, sentetik/aktif tam yedek planı burada. Varsayılanlar çoğu ortam için doğrudur — 'önce varsayılanla başla, ölç, sonra ince ayar yap' ilkesini izliyoruz.");
+      };
+      egitmenSoyle("Bu adımda üç karar var: veriyi <b>kim taşıyacak</b> (proxy), <b>nereye yazılacak</b> (repository) ve <b>ne kadar saklanacak</b> (retention). Depo listesini aç ve kapasiteleri karşılaştır — varsayılan seçim her zaman doğru değildir!");
+      break;
+
+    case 3: /* --------- GUEST PROCESSING --------- */
+      ic.innerHTML = `
+        <label class="onay">
+          <input type="checkbox" id="aapKutu" ${durum.aap ? "checked" : ""}>
+          <span><span class="ad">Enable application-aware processing</span>
+          <small>Detects and prepares applications for consistent backup, performs transaction logs processing, and configures the OS to perform required application restore steps upon first boot.</small>
+          <button class="yesilLink" id="aapSecenek" style="margin-top:5px; display:${durum.aap ? "inline" : "none"}">Application-aware processing options</button></span>
+        </label>
+        <div id="sqlKutu" style="display:${durum.aap ? "block" : "none"}; margin: 4px 0 16px 26px;">
+          <div class="bolumSerit">Microsoft SQL Server transaction logs</div>
+          <label class="radyo ${durum.logYontem === "periyodik" ? "secili" : ""}"><input type="radio" name="log" value="periyodik" ${durum.logYontem === "periyodik" ? "checked" : ""}>
+            <span><span class="ad">Backup logs periodically (every 15 minutes)</span><small>Point-in-time kurtarma: veritabanını gün içinde istenen dakikaya döndürebilirsin</small></span></label>
+          <label class="radyo ${durum.logYontem === "kes" ? "secili" : ""}"><input type="radio" name="log" value="kes" ${durum.logYontem === "kes" ? "checked" : ""}>
+            <span><span class="ad">Truncate logs</span><small>Log dosyaları şişmez, ancak ara kurtarma noktası oluşmaz</small></span></label>
+          <label class="radyo ${durum.logYontem === "dokunma" ? "secili" : ""}"><input type="radio" name="log" value="dokunma" ${durum.logYontem === "dokunma" ? "checked" : ""}>
+            <span><span class="ad">Do not truncate logs (copy only)</span><small>Log zincirini başka bir yedekleme aracı yönetiyorsa kullanılır</small></span></label>
+        </div>
+        <label class="onay">
+          <input type="checkbox" id="indeks">
+          <span><span class="ad">Enable guest file system indexing and malware detection</span>
+          <small>Indexing enables global file search functionality, automatic detection of suspicious file system activity and known malware files.</small></span>
+        </label>
+        <div class="alanGrup">
+          <label class="alanEtiket">Guest interaction proxy:</label>
+          <div class="satirIc">
+            <input class="girdi" style="max-width:420px" value="Automatic selection" readonly>
+            <button class="yesilLink" id="gipSec">🖥 Choose</button>
+          </div>
+        </div>
+        <div class="alanGrup">
+          <label class="alanEtiket" for="kimlikSec">Guest OS Credentials:</label>
+          <select class="girdi" id="kimlikSec" style="max-width:420px">
+            <option value="">Select existing credentials or add new</option>
+            <option value="svc" ${durum.kimlik === "svc" ? "selected" : ""}>VEEAM\\svc_backup (backup service account)</option>
+            <option value="kisisel" ${durum.kimlik === "kisisel" ? "selected" : ""}>SIRKET\\bulent.yonetici (personal admin account)</option>
+          </select>
+        </div>`;
+      const aapKutu = document.getElementById("aapKutu");
+      aapKutu.onchange = () => {
+        durum.aap = aapKutu.checked;
+        document.getElementById("sqlKutu").style.display = durum.aap ? "block" : "none";
+        document.getElementById("aapSecenek").style.display = durum.aap ? "inline" : "none";
+        if (durum.aap) {
+          puanVer(20, innerWidth / 2, 300);
+          egitmenSoyle("<b>En kritik tıklama buydu! 🎯</b> Bu kutu olmadan alınan yedek 'crash-consistent'tir — elektriği kesilmiş sunucu gibi. VSS ile SQL, yedek anında bellekteki işlemleri diske yazar; yedek <b>application-consistent</b> olur ve kurtarınca veritabanı temiz açılır. Üstelik VM içine <b>ajan kurmadan</b>.", "iyi");
+        }
+      };
+      document.getElementById("aapSecenek").onclick = () => {
+        egitmenSoyle("Gerçek arayüzde bu bağlantı; VSS davranışı, log işleme ve betik ayarlarının bulunduğu paneli açar. Lab'da SQL log seçeneklerini aşağıda doğrudan gösteriyoruz.");
+      };
+      ic.querySelectorAll('input[name="log"]').forEach(r => r.onchange = (e) => {
+        ic.querySelectorAll(".radyo").forEach(x => x.classList.remove("secili", "hatali"));
+        const kutu = e.target.closest(".radyo");
+        if (e.target.value === "periyodik") {
+          kutu.classList.add("secili");
+          if (durum.logYontem !== "periyodik") puanVer(15, innerWidth / 2, 340);
+          durum.logYontem = "periyodik";
+          egitmenSoyle("<b>Neden periyodik log yedeği?</b> Gece 22:00 imaj yedeği + gün boyu 15 dakikalık log yedekleri = veritabanını <b>felaketten 15 dakika öncesine</b> döndürme gücü. 'Saat 14:37'de tablo silindi' senaryosunda hayat kurtarır.", "iyi");
+        } else {
+          kutu.classList.add("hatali");
+          durum.logYontem = null;
+          puanVer(-5, innerWidth / 2, 340);
+          egitmenSoyle(e.target.value === "kes"
+            ? "Truncate, log şişmesini önler ama <b>point-in-time kurtarma</b> şansını kaybedersin. Üretim SQL'i için periyodik log yedeği daha güçlüdür. Tekrar seç."
+            : "Bu seçenek yalnızca log zincirini <b>başka bir araç</b> yönetiyorsa doğrudur; bizim senaryoda tek araç Veeam. Tekrar seç.", "uyari");
+          e.target.checked = false;
+        }
+      });
+      document.getElementById("indeks").onchange = (e) => {
+        if (e.target.checked) egitmenSoyle("<b>Bonus bilgi:</b> Dosya sistemi indeksleme, yedek içinde tekil dosya araması sağlar; v12.1+ ile <b>kötü amaçlı yazılım tespiti</b> de yapar. SQL senaryomuz için zorunlu değil ama güvenlik katmanı ekler.");
+      };
+      document.getElementById("gipSec").onclick = () => {
+        egitmenSoyle("<b>Guest interaction proxy</b>, VM içindeki işletim sistemiyle (VSS tetikleme, log toplama) iletişimi kuran bileşendir. Automatic selection çoğu ortam için doğrudur.");
+      };
+      document.getElementById("kimlikSec").onchange = (e) => {
+        if (e.target.value === "svc") {
+          if (durum.kimlik !== "svc") puanVer(5, innerWidth / 2, 420);
+          durum.kimlik = "svc";
+          egitmenSoyle("<b>Neden servis hesabı?</b> AAP, VM içindeki işletim sistemine bağlanıp VSS'i tetikler; SQL üzerinde yetkili bir hesap gerekir. Kişisel hesap yerine <b>özel servis hesabı</b>: şifre değişince görevler kırılmaz, yetki izlenebilir olur.", "iyi");
+        } else if (e.target.value === "kisisel") {
+          durum.kimlik = null;
+          puanVer(-5, innerWidth / 2, 420);
+          egitmenSoyle("<b>Kişisel hesap kullanma!</b> Kişi şifresini değiştirdiğinde ya da şirketten ayrıldığında tüm yedekleme görevleri kırılır. Amaca özel <b>servis hesabı</b> seç.", "uyari");
+          e.target.value = "";
+        } else durum.kimlik = null;
+      };
+      egitmenSoyle("İşte modülün <b>en önemli adımı</b>. SQL gibi veritabanları için sıradan imaj yedeği yetmez — en üstteki kutuyu işaretle ve farkı gör.");
+      break;
+
+    case 4: /* --------- SCHEDULE --------- */
+      ic.innerHTML = `
+        <label class="onay">
+          <input type="checkbox" id="otoCalis" checked>
+          <span><span class="ad">Run the job automatically</span></span>
+        </label>
+        <div class="satirIc" style="margin: 0 0 6px 26px;">
+          <select class="girdi" style="max-width:190px"><option>Daily at this time</option><option>Monthly at this time</option><option>Periodically every</option><option>After this job</option></select>
+          <select class="girdi" id="saatSec" style="max-width:120px">
+            <option value="">--:--</option>
+            <option value="09:00" ${durum.saat === "09:00" ? "selected" : ""}>09:00</option>
+            <option value="13:00" ${durum.saat === "13:00" ? "selected" : ""}>13:00</option>
+            <option value="22:00" ${durum.saat === "22:00" ? "selected" : ""}>22:00</option>
+            <option value="03:00" ${durum.saat === "03:00" ? "selected" : ""}>03:00</option>
+          </select>
+          <select class="girdi" style="max-width:150px"><option>Everyday</option><option>On weekdays</option><option>On these days</option></select>
+        </div>
+        <div class="bolumSerit">Automatic retry</div>
+        <label class="onay" style="margin-left:0">
+          <input type="checkbox" checked id="yenidenDene">
+          <span><span class="ad">Enable automatic retry</span>
+          <small>Retry failed items processing: 3 times · Wait before each retry attempt for: 10 minutes</small></span>
+        </label>
+        <div class="bolumSerit">Backup window</div>
+        <label class="onay" style="margin-left:0">
+          <input type="checkbox" id="pencereSinir">
+          <span><span class="ad">Terminate the job outside of the allowed backup window</span>
+          <small>Long running or accidentally started jobs will be terminated to prevent impact on your production infrastructure during busy hours.</small></span>
+        </label>`;
+      document.getElementById("saatSec").onchange = (e) => {
+        const s = e.target.value;
+        if (s === "22:00" || s === "03:00") {
+          if (durum.saat !== s) puanVer(15, innerWidth / 2, 260);
+          durum.saat = s;
+          egitmenSoyle(`<b>Doğru pencere!</b> ${s} mesai dışıdır: snapshot alma ve veri okuma, kullanıcılar sistemdeyken değil, yük düşükken yapılır. Buna <b>yedekleme penceresi</b> denir — üretime etki en aza iner.`, "iyi");
+        } else if (s) {
+          durum.saat = null;
+          puanVer(-5, innerWidth / 2, 260);
+          egitmenSoyle(`${s} üretimin en yoğun saatlerinden: yedekleme sırasında disk ve ağ yükü kullanıcıları yavaşlatır, snapshot uzun süre açık kalır. <b>Mesai dışı</b> bir saat seç.`, "uyari");
+          e.target.value = "";
+        }
+      };
+      document.getElementById("yenidenDene").onchange = (e) => {
+        if (!e.target.checked) { e.target.checked = true; egitmenSoyle("Otomatik yeniden denemeyi kapatma: geçici bir ağ sorunu gece görevini boşuna başarısız bırakır. 3 deneme / 10 dk bekleme varsayılanı dengelidir.", "uyari"); }
+      };
+      document.getElementById("pencereSinir").onchange = (e) => {
+        if (e.target.checked) egitmenSoyle("<b>Backup window sınırı:</b> Görev sabaha kadar bitmezse, mesai başlarken otomatik sonlandırılır ve üretim etkilenmez. Yoğun ortamlarda iyi bir sigortadır — lab senaryomuzda opsiyonel.");
+      };
+      egitmenSoyle("Yedekleme görevi üretim sistemlerinden veri okur — bu yüzden <b>ne zaman</b> çalıştığı, <b>nasıl</b> çalıştığı kadar önemlidir. Saat listesinden uygun pencereyi seç.");
+      break;
+
+    case 5: /* --------- SUMMARY --------- */
+      ic.innerHTML = `
+        <table class="vmTablo" style="max-width:640px">
+          <tbody>
+            <tr><td style="color:var(--soluk); width:42%">Name</td><td class="mono">${durum.gorevAdi || "—"}</td></tr>
+            <tr><td style="color:var(--soluk)">Virtual machines</td><td>🗄️ SQL-PROD-01 (120 GB)</td></tr>
+            <tr><td style="color:var(--soluk)">Backup proxy</td><td>Automatic selection</td></tr>
+            <tr><td style="color:var(--soluk)">Backup repository</td><td>REPO-REFS-01 (ReFS, Fast Clone)</td></tr>
+            <tr><td style="color:var(--soluk)">Retention policy</td><td>${durum.saklama} days</td></tr>
+            <tr><td style="color:var(--soluk)">Application-aware processing</td><td style="color:var(--vg); font-weight:600">✔ Enabled (VSS)</td></tr>
+            <tr><td style="color:var(--soluk)">SQL transaction logs</td><td>Backup logs periodically (every 15 minutes)</td></tr>
+            <tr><td style="color:var(--soluk)">Schedule</td><td>Daily at ${durum.saat} · retry 3 times</td></tr>
+          </tbody>
+        </table>
+        <label class="onay" style="margin-top:16px">
+          <input type="checkbox" id="hemenCalistir" checked>
+          <span><span class="ad">Run the job when I click Finish</span></span>
+        </label>`;
+      egitmenSoyle("Her sihirbazın son adımı: <b>özeti oku!</b> Ayarları şimdi kontrol etmek, gece yarısı 'job failed' alarmıyla uyanmaktan iyidir. Hazırsan <b>Finish</b>'e bas — veri akışını canlı izleyeceğiz. 🍿");
+      break;
+  }
+}
+
+/* ==================== ADD OBJECTS PANELİ ==================== */
+const vmler = [
+  { ad: "SQL-PROD-01", boyut: "120 GB", dogru: true },
+  { ad: "WEB-01", boyut: "40 GB" },
+  { ad: "DC-01", boyut: "60 GB" },
+  { ad: "TEST-SQL-99", boyut: "80 GB" },
+];
+let secimler = new Set();
+
+function agacCiz() {
+  const a = document.getElementById("agac");
+  secimler = new Set();
+  a.innerHTML = `
+    <div class="agacSatir" style="font-weight:600">▾ 🏢 vcenter01.sirket.local</div>
+    <div style="padding-left:20px">
+      <div class="agacSatir" style="font-weight:600">▾ 📍 Istanbul</div>
+      <div style="padding-left:20px">
+        <div class="agacSatir" style="font-weight:600">▾ 🖥 esx01.sirket.local</div>
+        <div style="padding-left:20px" id="agacVm"></div>
+      </div>
+    </div>`;
+  const kap = document.getElementById("agacVm");
+  vmler.forEach(vm => {
+    const s = document.createElement("label");
+    s.className = "agacSatir vm";
+    s.innerHTML = `<input type="checkbox" value="${vm.ad}"> 🗄 ${vm.ad} <span class="boyut">${vm.boyut}</span>`;
+    s.querySelector("input").onchange = (e) => {
+      e.target.checked ? secimler.add(vm.ad) : secimler.delete(vm.ad);
+      s.classList.toggle("isaretli", e.target.checked);
+    };
+    kap.appendChild(s);
+  });
+}
+
+function panelAc() {
+  document.getElementById("kayarPanel").classList.add("acik");
+  document.getElementById("ortu").classList.add("acik");
+  egitmenSoyle("Gerçek <b>Add Objects</b> paneli: envanteri konteyner (klasör, host, tag) ya da tekil VM olarak seçebilirsin. Konteyner seçersen, içine eklenen yeni VM'ler göreve <b>otomatik</b> dahil olur. Şimdilik hedefimiz tek makine: doğru olanı işaretle.");
+}
+function panelKapat() {
+  document.getElementById("kayarPanel").classList.remove("acik");
+  document.getElementById("ortu").classList.remove("acik");
+}
+
+function nesneEkle() {
+  if (secimler.size === 0) {
+    egitmenSoyle("Önce ağaçtan bir nesne işaretlemelisin.", "uyari");
+    return;
+  }
+  const yanlislar = [...secimler].filter(ad => ad !== "SQL-PROD-01");
+  if (yanlislar.length > 0) {
+    puanVer(-5, innerWidth / 2, 300);
+    egitmenSoyle(`<b>${yanlislar.join(", ")}</b> bu görevin hedefi değil. Brifingi hatırla: üretim SQL sunucusu <b>SQL-PROD-01</b>'i yedekliyoruz. ${yanlislar.includes("TEST-SQL-99") ? "Test makinelerini üretim görevine karıştırmak saklama ve kapasite planını bozar." : "Her iş yükü için amaca uygun ayrı görevler tanımlamak en iyi pratiktir."} İşaretleri düzelt.`, "uyari");
+    return;
+  }
+  durum.vmEklendi = true;
+  panelKapat();
+  vmSatirYaz();
+  puanVer(15, innerWidth / 2, 260);
+  egitmenSoyle("<b>Neden VM seviyesinde, ajansız?</b> Veeam, hipervizör API'leri üzerinden tüm sanal makineyi (işletim sistemi + SQL + veriler) imaj olarak yedekler — VM içine <b>ajan kurulmaz</b>. Tek görevle hem sunucuyu komple, hem tek bir veritabanını kurtarabilir hale geliyoruz.", "iyi");
+}
+
+function vmSatirYaz() {
+  document.getElementById("vmSatirlar").innerHTML =
+    `<tr><td><input type="checkbox" checked disabled></td><td class="mono">🗄 SQL-PROD-01</td><td>Virtual Machine</td><td>120 GB</td></tr>`;
+}
+
+/* ==================== ADIM GEÇİŞLERİ ==================== */
+function adimGeri() { if (aktifAdim > 0) { aktifAdim--; adimCiz(); } }
+
+function adimIleri() {
+  const engel = {
+    0: () => !durum.gorevAdi && "Göreve bir ad vermeden ilerleyemezsin. İpucu: eğitmen panelindeki önerilen adı kullanabilirsin.",
+    1: () => !durum.vmEklendi && "Görev kapsamı boş — 'Choose at least one VM to proceed.' ＋ Add ile SQL-PROD-01'i ekle.",
+    2: () => durum.depo !== "refs" && "Depo seçimini gözden geçir: seçili deponun kapasitesi 14 günlük zincir için yeterli mi? Listeden uygun olanı seç.",
+    3: () => (!durum.aap && "SQL yedeğinde <b>application-aware processing</b> olmadan ilerlemek 'crash-consistent' yedek demek — kutuyu işaretle! (-10 puan)")
+          || (!durum.logYontem && "SQL işlem günlükleri için bir strateji seçmelisin.")
+          || (!durum.kimlik && "AAP'nin çalışması için Guest OS Credentials seç."),
+    4: () => !durum.saat && "Mesai dışı bir çalışma saati seçmelisin.",
+  }[aktifAdim];
+  const mesaj = engel && engel();
+  if (mesaj) {
+    if (aktifAdim === 3 && !durum.aap) puanVer(-10, innerWidth / 2, 200);
+    egitmenSoyle(mesaj, "uyari");
+    return;
+  }
+  if (aktifAdim < adimlar.length - 1) { aktifAdim++; adimCiz(); }
+  else gorevCalistir();
+}
+
+/* ==================== GÖREV OTURUMU (ANİMASYON) ==================== */
+const asamaListesi = [
+  "VSS snapshot alınıyor — SQL bellekteki işlemleri diske yazıyor (uygulama tutarlılığı)",
+  "Proxy, VM verisini CBT (değişen blok takibi) ile okuyor",
+  "Veri sıkıştırılıyor ve tekilleştiriliyor",
+  "Sıkıştırılmış veri REPO-REFS-01'e yazılıyor (.vbk)",
+  "Snapshot kaldırılıyor ve geri yükleme noktası kaydediliyor",
+];
+
+function gorevCalistir() {
+  puanVer(10, innerWidth / 2, 200);
+  document.getElementById("gorunumSihirbaz").hidden = true;
+  document.getElementById("gorunumOturum").hidden = false;
+  document.getElementById("oturumAd").textContent = durum.gorevAdi;
+  const pul = document.getElementById("oturumDurum");
+  pul.textContent = "● Running"; pul.classList.remove("bittiP");
+  window.scrollTo({ top: 0 });
+  egitmenSoyle("Görev başladı! Aşağıdaki akışı izle: veri <b>ESXi → Proxy → Depo</b> hattında ilerliyor. Mavi paketler ham VM verisi, yeşiller sıkıştırılmış veri — aradaki fark, sıkıştırma oranıdır. <b>Darboğaz</b> göstergesi, zincirin en yavaş halkasını söyler.");
+
+  const asamaKap = document.getElementById("asamalar");
+  asamaKap.innerHTML = asamaListesi.map((a, i) =>
+    `<div class="asama" id="asama${i}"><span class="isaret">${i + 1}</span> ${a}</div>`).join("");
+  const term = document.getElementById("term");
+  term.innerHTML = "";
+  const log = (m, sinif) => {
+    const s = document.createElement("div");
+    if (sinif) s.className = sinif;
+    s.textContent = `[${new Date().toLocaleTimeString("tr-TR")}] ${m}`;
+    term.appendChild(s);
+    while (term.children.length > 6) term.firstChild.remove();
+  };
+
+  const paket1 = document.getElementById("paketler1");
+  const paket2 = document.getElementById("paketler2");
+  const snap = document.getElementById("snapRozet");
+  const vbk = document.getElementById("vbkRozet");
+  paket1.setAttribute("opacity", 0); paket2.setAttribute("opacity", 0);
+  snap.setAttribute("opacity", 0); vbk.setAttribute("opacity", 0);
+  document.getElementById("ilerleme").style.width = "0%";
+
+  const TOPLAM = 120, ORAN = 2.4;
+  let evre = 0, yuzde = 0;
+  const evreSinir = [4, 10, 10, 88, 100];
+
+  const asamaAc = (i) => {
+    for (let j = 0; j < asamaListesi.length; j++) {
+      const el = document.getElementById("asama" + j);
+      el.classList.toggle("aktifA", j === i);
+      el.classList.toggle("bittiA", j < i);
+      if (j < i) el.querySelector(".isaret").textContent = "✓";
+    }
+  };
+
+  log("Job started at " + new Date().toLocaleString("tr-TR"));
+  asamaAc(0);
+  log("Creating VSS snapshot (application-aware)...", "w");
+  snap.setAttribute("opacity", 1);
+
+  const zamanlayici = setInterval(() => {
+    yuzde = Math.min(100, yuzde + 1.6 + Math.random() * 1.2);
+    document.getElementById("ilerleme").style.width = yuzde + "%";
+
+    while (evre < evreSinir.length && yuzde >= evreSinir[evre]) {
+      evre++;
+      asamaAc(evre);
+      if (evre === 1) { log("Snapshot created successfully", "i"); log("Proxy PRX-01: reading disk via CBT..."); paket1.setAttribute("opacity", 1); }
+      if (evre === 2) { log("Compression: LZ4, dedup enabled"); document.getElementById("oranYazi").textContent = "sıkıştırma " + ORAN + "x"; }
+      if (evre === 3) { log("Writing to REPO-REFS-01 (Fast Clone)..."); paket2.setAttribute("opacity", 1); }
+      if (evre === 4) {
+        log("Removing VM snapshot...", "w");
+        paket1.setAttribute("opacity", 0); paket2.setAttribute("opacity", 0);
+        snap.setAttribute("opacity", 0);
+      }
+    }
+
+    if (evre >= 1 && evre <= 4) {
+      const islenen = Math.max(0, Math.min(TOPLAM, TOPLAM * (yuzde - 10) / 78));
+      if (islenen > 0) {
+        document.getElementById("stIslenen").textContent = islenen.toFixed(0) + " GB";
+        document.getElementById("stAktarilan").textContent = (islenen / ORAN).toFixed(0) + " GB";
+        document.getElementById("stHiz").textContent = (180 + Math.random() * 60).toFixed(0) + " MB/s";
+        document.getElementById("stDarbogaz").textContent = yuzde < 60 ? "Source" : "Target";
+        document.getElementById("depoGB").textContent = (islenen / ORAN).toFixed(0) + " GB";
+        const h = Math.min(60, 60 * islenen / TOPLAM);
+        const dolum = document.getElementById("depoDolum");
+        dolum.setAttribute("height", h);
+        dolum.setAttribute("y", 192 - h);
+      }
+    }
+
+    if (yuzde >= 100) {
+      clearInterval(zamanlayici);
+      asamaAc(5);
+      vbk.setAttribute("opacity", 1);
+      pul.textContent = "✔ Success"; pul.classList.add("bittiP");
+      document.getElementById("stIslenen").textContent = TOPLAM + " GB";
+      document.getElementById("stAktarilan").textContent = (TOPLAM / ORAN).toFixed(0) + " GB";
+      document.getElementById("depoGB").textContent = (TOPLAM / ORAN).toFixed(0) + " GB";
+      log("Restore point created successfully", "i");
+      log("Job finished with Success", "i");
+      egitmenSoyle("<b>Success!</b> 120 GB işlendi, ağdan yalnızca 50 GB geçti (2.4x sıkıştırma) ve depoda <b>.vbk</b> dosyası — ilk geri yükleme noktan — oluştu. Darboğazın önce 'Source' sonra 'Target' göstermesi normal: okuma bitti, yazma sürüyordu.", "iyi");
+      setTimeout(bitir, 2400);
+    }
+  }, 130);
+}
+
+function bitir() {
+  ekranGoster("labBitis");
+  window.scrollTo({ top: 0 });
+  const p = puan;
+  const [ikon, yazi] = p >= 90 ? ["🥇", "Altın rozet — kusursuz bir yedekleme mühendisisin!"]
+                     : p >= 65 ? ["🥈", "Gümüş rozet — sağlam iş! Birkaç tuzağa takıldın ama görev başarılı."]
+                     : ["🥉", "Bronz rozet — görev tamam! Lab'ı tekrar oynayarak puanını yükseltebilirsin."];
+  document.getElementById("rozetIkon").textContent = ikon;
+  document.getElementById("rozetYazi").textContent = yazi;
+  document.getElementById("sonPuan").textContent = p + " / 100";
+}
+</script>
+</body>
+</html>
