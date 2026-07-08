@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hakkımda — Veri Dayanıklılığı Bilgi Platformu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --zeminP: #f4f7f3; --murekkep: #10221a; --kartP: #fcfdfc; --cizgiP: #dee7df;
+    --soft: #5d6e63; --em: #14603a; --emZar: #14603a12; --emCizgi: #14603a3a;
+    --golge: #0a1a1114;
+  }
+  body.koyu {
+    --zeminP: #0a1811; --murekkep: #ecf4ed; --kartP: #10241a; --cizgiP: #ffffff1e;
+    --soft: #97a99c; --em: #3ecf83; --emZar: #3ecf831a; --emCizgi: #3ecf8352;
+    --golge: #00000059;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; background: var(--zeminP); color: var(--murekkep); min-height: 100vh; padding: 26px 18px 60px; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .ust { display: flex; align-items: center; gap: 12px; margin-bottom: 44px; }
+  .geri { text-decoration: none; background: var(--kartP); border: 1px solid var(--cizgiP); color: var(--murekkep); border-radius: 999px; padding: 9px 18px; font-size: 13.5px; font-weight: 600; }
+  .geri:hover { border-color: var(--em); color: var(--em); }
+  .eyebrow { margin-left: auto; font-family: "Cascadia Code", Consolas, monospace; font-size: 10.5px; letter-spacing: 2.6px; text-transform: uppercase; color: var(--em); }
+  .hakk { display: grid; grid-template-columns: 250px 1fr; gap: 50px; align-items: start; }
+  .muhurKap { position: relative; width: 212px; height: 212px; margin: 6px auto 0; }
+  .muhurKap .donen { position: absolute; inset: 0; animation: muhurDon 34s linear infinite; color: var(--em); }
+  @keyframes muhurDon { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .muhurKap .donen { animation: none; } }
+  .muhurIc { position: absolute; inset: 33px; border-radius: 50%; border: 1px solid var(--cizgiP); background: var(--kartP); display: flex; align-items: center; justify-content: center; font-family: "Fraunces", Georgia, serif; font-size: 54px; font-weight: 500; color: var(--em); box-shadow: 0 16px 40px var(--golge); }
+  h1 { font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(30px, 4.4vw, 44px); letter-spacing: -.8px; margin-bottom: 8px; }
+  .rol { font-family: "Cascadia Code", Consolas, monospace; font-size: 11px; letter-spacing: 2.2px; text-transform: uppercase; color: var(--em); margin-bottom: 22px; }
+  p { font-size: 15px; color: var(--soft); line-height: 1.85; max-width: 62ch; margin-bottom: 15px; }
+  p b { color: var(--murekkep); font-weight: 600; }
+  .odaklar { display: flex; gap: 8px; flex-wrap: wrap; margin: 22px 0 26px; }
+  .etiket { font-size: 11px; font-weight: 600; letter-spacing: .4px; padding: 5px 13px; border-radius: 999px; color: var(--em); border: 1px solid var(--emCizgi); background: var(--emZar); }
+  .kisiBtnlar { display: flex; gap: 10px; flex-wrap: wrap; }
+  .kisiBtn { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; border: 1px solid var(--cizgiP); background: var(--kartP); color: var(--murekkep); border-radius: 12px; padding: 11px 20px; font-size: 13.5px; font-weight: 600; transition: border-color .15s, transform .15s; }
+  .kisiBtn:hover { border-color: var(--em); transform: translateY(-1px); }
+  .not { margin-top: 26px; font-size: 11.5px; color: var(--soft); border-top: 1px dashed var(--cizgiP); padding-top: 14px; max-width: 62ch; }
+  :focus-visible { outline: 2px solid #2f80ed; outline-offset: 2px; }
+  @media (max-width: 700px) { .hakk { grid-template-columns: 1fr; gap: 34px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="ust">
+    <a class="geri" href="./">← Platforma Dön</a>
+    <span class="eyebrow">Hakkımda</span>
+  </div>
+
+  <div class="hakk">
+    <div class="muhurKap">
+      <svg class="donen" viewBox="0 0 212 212" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs><path id="cember" d="M 106 106 m -94 0 a 94 94 0 1 1 188 0 a 94 94 0 1 1 -188 0"/></defs>
+        <text fill="currentColor" opacity=".62" font-family="Cascadia Code, Consolas, monospace" font-size="10.5" letter-spacing="3.2">
+          <textPath href="#cember">VERİ DAYANIKLILIĞI · SAHADAN NOTLAR · İNTERAKTİF LAB · HEROES START HERE ·</textPath>
+        </text>
+      </svg>
+      <div class="muhurIc">BT</div>
+    </div>
+    <div>
+      <h1>Bülent Tolu</h1>
+      <div class="rol">Veeam · Türkiye — Veri Dayanıklılığı</div>
+      <p>Veri koruma, siber dayanıklılık ve kurumsal BT çözümleri alanlarında <b>uzun yıllara dayanan deneyime</b> sahibim.</p>
+      <p>Müşterilerin ve iş ortaklarının teknoloji yatırımlarından en yüksek değeri elde etmelerine yardımcı olmak için <b>teknik uzmanlık ile iş bakış açısını</b> birleştiriyorum. Saha tecrübesiyle, güvenilir ve sürdürülebilir veri dayanıklılığı yaklaşımlarının oluşturulmasına katkı sağlıyorum.</p>
+      <p>Bu platform, sahada öğrendiklerimi teknik toplulukla paylaşmak için kurduğum <b>kişisel alanım</b>: gerçek arayüzde çalışan lab simülasyonları, karar rehberleri ve gündem notları.</p>
+      <div class="kisiBtnlar" style="margin-top:24px">
+        <a class="kisiBtn" href="mailto:bulent.tolu@veeam.com">✉ E-posta</a>
+        <a class="kisiBtn" href="https://www.linkedin.com/in/bulenttolu" target="_blank" rel="noopener">in LinkedIn</a>
+        <a class="kisiBtn" href="https://github.com/bulenttolu/backup-heroes" target="_blank" rel="noopener">⌥ GitHub</a>
+      </div>
+      <p class="not">Buradaki içerikler kişisel deneyim ve görüşlerimi yansıtır; resmi Veeam dokümantasyonunun yerine geçmez.</p>
+    </div>
+  </div>
+</div>
+<script>
+  if (localStorage.getItem("tema") === "koyu") document.body.classList.add("koyu");
+</script>
+</body>
+</html>

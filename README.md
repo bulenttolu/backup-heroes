@@ -1,4 +1,4 @@
-# 🛡️ Veeam ile Veri Dayanıklılığı Platformu — Heroes Start Here
+# 🛡️ Veeam ile Veri Dayanıklılığı Bilgi Platformu — Heroes Start Here
 
 İş ortakları ve müşteriler için **oyunlaştırılmış Veeam eğitim platformu**. Her modül, gerçek Veeam Backup & Replication web arayüzünün birebir HTML simülasyonunda ("lab") adım adım ilerletir; her tıklamanın **nedenini** anlatır, doğru seçimleri puanlar ve süreci animasyonlarla görselleştirir.
 

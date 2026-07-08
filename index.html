@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Veeam ile Veri Dayanıklılığı Platformu</title>
+<title>Bülent Tolu — Veri Dayanıklılığı Platformu</title>
+<meta property="og:title" content="Bülent Tolu — Veri Dayanıklılığı Platformu">
+<meta property="og:description" content="Gündem, interaktif Veeam lab simülasyonları ve sahadan notlar. Veri dayanıklılığını uygulayarak öğren.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
 </head>
 <body>
 <style>
@@ -25,15 +30,66 @@
     --amber-a: #fdf3df;
     --kirmizi: #c9303e;
     --kirmizi-a: #fdeaec;
+    /* portal koyu tema */
+    --orman: #071f14;
+    --mint: #43e07f;
+    --cam: #ffffff0a;
+    --camCizgi: #ffffff1c;
+    --acikMetin: #eef7f1;
+    --solukD: #9db4a7;
+  }
+  /* ---- portal tema belirteçleri: açık varsayılan, body.koyu ile karanlık ---- */
+  :root {
+    --zeminP: #fbfcfb;
+    --bolumZemin: #e9f0ea;
+    --murekkep: #10221a;
+    --kartP: #ffffff;
+    --cizgiP: #dee7df;
+    --soft: #5d6e63;
+    --em: #14603a;
+    --emZar: #14603a12;
+    --emCizgi: #14603a3a;
+    --bant: #0c1e15;
+    --bantMetin: #eef6f0;
+    --bantSoluk: #9db3a5;
+    --mintB: #4fe392;
+    --halo: radial-gradient(52% 44% at 84% -8%, #17803f12 0%, transparent 70%),
+            radial-gradient(46% 40% at -10% 32%, #2fbf710d 0%, transparent 70%);
+    --govdeGolge: #0a1a1114;
+  }
+  body.koyu {
+    --zeminP: #0a1811;
+    --bolumZemin: #0e2117;
+    --murekkep: #ecf4ed;
+    --kartP: #10241a;
+    --cizgiP: #ffffff1e;
+    --soft: #97a99c;
+    --em: #3ecf83;
+    --emZar: #3ecf831a;
+    --emCizgi: #3ecf8352;
+    --bant: #071510;
+    --halo: radial-gradient(50% 42% at 82% -8%, #3ecf831a 0%, transparent 70%),
+            radial-gradient(48% 40% at -8% 36%, #14663629 0%, transparent 70%);
+    --govdeGolge: #00000059;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { min-height: 100%; }
+  html { overflow-x: clip; }
   body {
     font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-    background: var(--sayfa);
+    background: var(--zeminP);
     color: var(--metin);
-    padding: 28px 16px 60px;
+    padding: 0 16px 64px;
+    position: relative;
+    overflow-x: clip;
   }
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: var(--halo);
+  }
+  /* lab görünümü: her zaman aydınlık gerçek konsol zemini */
+  body.labModu { background: var(--sayfa); }
+  body.labModu::before { display: none; }
   .mono { font-family: "Cascadia Code", Consolas, monospace; }
   .wrap { max-width: 1120px; margin: 0 auto; }
   button { font-family: inherit; }
@@ -60,108 +116,234 @@
   .btnP:hover:not(:disabled) { background: var(--vg-koyu); transform: translateY(-1px); }
   .btnP:disabled { opacity: .4; cursor: not-allowed; }
 
-  /* ================= PORTAL ANA SAYFA ================= */
+  /* ================= PORTAL — EDİTORYAL TASARIM ================= */
   html { scroll-behavior: smooth; }
   a.btnP { text-decoration: none; }
-  .etiketler { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 16px; }
-  .etiket { font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--zemin2); color: var(--soluk); border: 1px solid var(--cizgi); }
-  .etiket.yesil { background: var(--vg-acik); color: var(--vg); border-color: var(--vg-cizgi); }
+  .fSerif { font-family: "Fraunces", Georgia, "Times New Roman", serif; }
+  #home { color: var(--murekkep); padding-top: 18px; }
+  #lab { padding-top: 26px; }
+  #home ::selection { background: #17803f2e; }
+
+  .etiketler { display: flex; gap: 7px; flex-wrap: wrap; }
+  .etiket { font-size: 11px; font-weight: 600; letter-spacing: .4px; padding: 4px 11px; border-radius: 999px; background: transparent; color: var(--soft); border: 1px solid var(--cizgiP); }
+  .etiket.yesil { color: var(--em); border-color: var(--emCizgi); background: var(--emZar); }
 
   /* yapışkan navigasyon */
   .portalNav {
-    position: sticky; top: 10px; z-index: 30;
-    display: flex; align-items: center; gap: 14px;
-    background: #ffffffe6; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--cizgi); border-radius: 14px;
-    padding: 9px 16px; margin-bottom: 20px;
-    box-shadow: 0 8px 24px #0f2b1a14;
+    position: sticky; top: 14px; z-index: 40;
+    display: flex; align-items: center; gap: 12px;
+    background: var(--kartP); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--cizgiP); border-radius: 999px;
+    padding: 8px 10px 8px 20px; margin-bottom: 10px;
+    box-shadow: 0 12px 34px var(--govdeGolge);
   }
-  .marka { display: flex; gap: 10px; align-items: center; text-decoration: none; color: var(--metin); font-weight: 800; font-size: 14.5px; line-height: 1.15; }
-  .marka .amblem { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(145deg, #135c33, #17803f); display: flex; align-items: center; justify-content: center; font-size: 17px; }
-  .marka small { display: block; font-size: 9.5px; letter-spacing: 1.4px; color: var(--vg); font-weight: 700; text-transform: uppercase; }
-  .navLinkler { display: flex; gap: 4px; margin-left: auto; overflow-x: auto; }
-  .navLinkler a { text-decoration: none; color: var(--soluk); font-size: 13.5px; font-weight: 600; padding: 7px 13px; border-radius: 9px; white-space: nowrap; transition: color .12s, background .12s; }
-  .navLinkler a:hover, .navLinkler a.aktifNav { color: var(--vg); background: var(--vg-acik); }
+  .marka { display: flex; align-items: baseline; gap: 11px; text-decoration: none; color: var(--murekkep); white-space: nowrap; }
+  .marka .ad { font-family: "Fraunces", Georgia, serif; font-size: 17.5px; font-weight: 600; letter-spacing: .1px; }
+  .marka small { font-family: "Cascadia Code", Consolas, monospace; font-size: 9px; letter-spacing: 2.4px; color: var(--em); text-transform: uppercase; }
+  .navLinkler { display: flex; gap: 2px; margin-left: auto; overflow-x: auto; }
+  .navLinkler a { text-decoration: none; color: var(--soft); font-size: 13px; font-weight: 600; padding: 8px 13px; border-radius: 999px; white-space: nowrap; transition: color .15s, background .15s; }
+  .navLinkler a:hover, .navLinkler a.aktifNav { color: var(--em); background: var(--emZar); }
+  .temaBtn { cursor: pointer; flex-shrink: 0; width: 37px; height: 37px; border-radius: 50%; border: 1px solid var(--cizgiP); background: var(--kartP); font-size: 15px; display: flex; align-items: center; justify-content: center; transition: border-color .15s, transform .15s; }
+  .temaBtn:hover { border-color: var(--em); transform: rotate(14deg); }
+  .surumPul { flex-shrink: 0; border: 1px solid var(--emCizgi); background: var(--emZar); color: var(--em); border-radius: 999px; padding: 5px 12px; font-weight: 700; font-size: 10.5px; letter-spacing: .8px; white-space: nowrap; }
 
-  /* hero */
-  .hero {
-    position: relative; overflow: hidden;
-    display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; align-items: center;
-    background: linear-gradient(135deg, #0c3520 0%, #135c33 58%, #1a8a46 100%);
-    border-radius: 22px; padding: 46px 48px; margin-bottom: 40px; color: #fff;
+  /* ---- sinematik hero: tam kontrast bant + uçuşan içerik kartları ---- */
+  .marka .amblem { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(145deg, #14603a, #17803f); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .marka { align-items: center; }
+  .marka small { font-size: 9.5px; }
+  .heroBant {
+    background: var(--bant); color: var(--bantMetin);
+    margin-inline: calc(50% - 50vw); padding-inline: calc(50vw - 50%);
+    padding-block: 44px 38px; margin-bottom: 44px;
+    position: relative; overflow: hidden; border-radius: 0 0 28px 28px;
   }
-  .hero::after {
+  .heroBant::before {
     content: ""; position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(520px 260px at 85% -20%, #7dffb422 0%, transparent 60%),
-                radial-gradient(420px 240px at -10% 120%, #00000033 0%, transparent 60%);
+    background: radial-gradient(56% 90% at 84% 8%, #4fe39216 0%, transparent 62%),
+                radial-gradient(40% 70% at 4% 92%, #17803f24 0%, transparent 60%);
   }
-  .heroRozet { display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #9fe8bd; border: 1px solid #9fe8bd44; background: #ffffff12; padding: 6px 14px; border-radius: 999px; }
-  .heroRozet .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: nabiz 1.8s infinite; }
-  .hero h1 { font-size: clamp(27px, 4.4vw, 42px); line-height: 1.13; font-weight: 800; margin: 16px 0 12px; text-wrap: balance; }
-  .hero p { font-size: 15.5px; color: #cfe9da; line-height: 1.7; max-width: 480px; }
-  .heroBtnlar { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
-  .btnHayalet { display: inline-block; text-decoration: none; border: 1px solid #ffffff55; color: #fff; border-radius: 10px; padding: 11px 22px; font-weight: 600; font-size: 14.5px; transition: background .12s; }
-  .btnHayalet:hover { background: #ffffff1a; }
-  .heroArt { width: 100%; max-width: 330px; justify-self: center; position: relative; z-index: 1; }
+  .heroIc { position: relative; z-index: 1; display: grid; grid-template-columns: 1.02fr .98fr; gap: 34px; align-items: center; }
+  .heroEyebrow { display: flex; align-items: center; gap: 12px; font-family: "Cascadia Code", Consolas, monospace; font-size: 10.5px; letter-spacing: 2.8px; text-transform: uppercase; color: var(--mintB); }
+  .heroEyebrow::before { content: ""; width: 38px; height: 1px; background: var(--mintB); }
+  .heroBant h1 { font-family: "Fraunces", Georgia, "Times New Roman", serif; font-weight: 500; font-size: clamp(30px, 4.4vw, 50px); line-height: 1.08; letter-spacing: -1.1px; margin: 15px 0 13px; text-wrap: balance; color: #fff; }
+  .heroBant h1 em { font-style: italic; color: var(--mintB); }
+  .heroAlt { font-size: 14.5px; color: var(--bantSoluk); line-height: 1.75; max-width: 48ch; }
+  .heroAlt b { color: #fff; font-weight: 600; }
+  .heroBtnlar { display: flex; gap: 11px; margin-top: 22px; flex-wrap: wrap; align-items: center; }
+  .btnHayalet { display: inline-block; text-decoration: none; border: 1px solid #ffffff30; color: #fff; background: #ffffff0a; border-radius: 11px; padding: 11px 22px; font-weight: 600; font-size: 14px; transition: border-color .15s, background .15s; }
+  .btnHayalet:hover { border-color: var(--mintB); background: #ffffff14; }
+  .statSerit { display: flex; gap: clamp(22px, 4vw, 46px); flex-wrap: wrap; margin-top: 26px; padding-top: 18px; border-top: 1px solid #ffffff1c; }
+  .statKutu b { display: block; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 24px; color: #fff; font-variant-numeric: tabular-nums; }
+  .statKutu span { font-family: "Cascadia Code", Consolas, monospace; font-size: 9px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--bantSoluk); }
 
-  /* bölümler */
-  .bolum { margin-bottom: 42px; scroll-margin-top: 86px; }
-  .bolumUst { display: flex; align-items: center; gap: 13px; margin-bottom: 16px; }
-  .bolumIkon { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; background: var(--vg-acik); border: 1px solid var(--vg-cizgi); display: flex; align-items: center; justify-content: center; font-size: 20px; }
-  .bolumUst h2 { font-size: 20px; }
-  .bolumUst .altB { font-size: 12.5px; color: var(--soluk); margin-top: 1px; }
-  .bolumUst .sagUc { margin-left: auto; }
-
-  /* haberler */
-  .haberListe { display: flex; flex-direction: column; gap: 10px; }
-  .haber {
-    display: flex; gap: 18px; align-items: baseline;
-    background: var(--beyaz); border: 1px solid var(--cizgi); border-left: 4px solid var(--vg-cizgi);
-    border-radius: 12px; padding: 15px 19px;
-    transition: border-color .15s, box-shadow .15s, transform .15s;
+  /* uçuşan tanıtım kartları — katmanlı 3B sahne */
+  .heroYazi, .ucanAlan { will-change: transform; transition: transform .18s ease-out; }
+  .ucanAlan { position: relative; height: 320px; }
+  .ucanAlan::before {
+    content: ""; position: absolute; inset: -10% -6%; pointer-events: none;
+    background: repeating-radial-gradient(circle at 60% 46%, #4fe3920a 0 1.5px, transparent 1.5px 44px);
   }
-  .haber:hover { border-left-color: var(--vg); box-shadow: 0 8px 22px #0f2b1a14; transform: translateX(3px); }
-  .haber .tarih { font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px; color: var(--soluk); white-space: nowrap; min-width: 62px; }
-  .haber .icH { min-width: 0; }
-  .haber h3 { font-size: 15px; margin-bottom: 3px; display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
-  .haber h3 a { color: var(--metin); text-decoration: none; }
-  .haber h3 a:hover { color: var(--vg); text-decoration: underline; }
-  .haber h3 a::after { content: " ↗"; font-size: 12px; color: var(--vg); }
-  .haber .ozetH { font-size: 13px; color: var(--soluk); line-height: 1.6; }
-
-  /* öne çıkan lab kartı */
-  .oneCikan {
-    display: grid; grid-template-columns: 290px 1fr;
-    background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 18px; overflow: hidden;
-    box-shadow: 0 4px 16px #0f2b1a0f; transition: box-shadow .15s, border-color .15s, transform .15s;
+  .ucanKart {
+    position: absolute; display: block; text-decoration: none; max-width: 245px;
+    background: #0f2b1cf0; border: 1px solid #4fe39236; border-radius: 14px;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    padding: 13px 16px; color: #fff;
+    box-shadow: 9px 10px 0 -1px #06170f, 9px 10px 0 0 #4fe39238, 0 26px 52px #00000059;
+    animation: yuz 7s ease-in-out infinite;
+    transition: border-color .18s, box-shadow .18s;
   }
-  .oneCikan:hover { border-color: var(--vg-cizgi); box-shadow: 0 14px 34px #0f2b1a1c; transform: translateY(-2px); }
-  .oneGorsel { background: linear-gradient(160deg, #0c3520, #17803f); display: flex; align-items: center; justify-content: center; padding: 26px; }
-  .oneGorsel svg { width: 100%; max-width: 230px; }
-  .oneIcerik { padding: 26px 30px; }
-  .oneIcerik h3 { font-size: 19px; margin-bottom: 7px; }
-  .oneIcerik p { font-size: 14px; color: var(--soluk); line-height: 1.65; margin-bottom: 14px; max-width: 560px; }
+  .ucanKart:hover { border-color: var(--mintB); box-shadow: 12px 14px 0 -1px #06170f, 12px 14px 0 0 #4fe39252, 0 30px 60px #00000073; }
+  .ucanKart:nth-child(1) { z-index: 3; }
+  .ucanKart:nth-child(2) { z-index: 2; scale: .96; opacity: .97; animation-duration: 8.2s; }
+  .ucanKart:nth-child(3) { z-index: 1; scale: .92; opacity: .92; animation-duration: 9.4s; }
+  .ucanKart small { display: block; font-family: "Cascadia Code", Consolas, monospace; font-size: 9px; letter-spacing: 2px; color: var(--mintB); margin-bottom: 5px; }
+  .ucanKart b { display: block; font-size: 13.5px; font-weight: 600; line-height: 1.4; margin-bottom: 3px; }
+  .ucanKart .altS { font-size: 11px; color: var(--bantSoluk); }
+  @keyframes yuz { 0%, 100% { transform: translateY(-7px); } 50% { transform: translateY(9px); } }
+  @media (prefers-reduced-motion: reduce) { .ucanKart { animation: none; } .heroYazi, .ucanAlan { transition: none; } }
 
-  /* not kartları */
-  .notGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 16px; }
-  .notKart {
-    background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 16px; overflow: hidden;
+  /* ---- sinematik koyu bant: manifesto ---- */
+  .bantB {
+    background: var(--bant); color: var(--bantMetin);
+    margin-inline: calc(50% - 50vw); padding-inline: calc(50vw - 50%);
+    padding-block: 88px 80px; margin-block: 74px 84px;
+    position: relative; overflow: hidden;
+  }
+  .bantB::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(46% 60% at 88% 0%, #4fe39214 0%, transparent 65%); }
+  .bantIc { position: relative; z-index: 1; display: grid; grid-template-columns: 1.05fr .95fr; gap: 64px; align-items: start; }
+  .eyebrowB { font-family: "Cascadia Code", Consolas, monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--mintB); display: flex; align-items: center; gap: 14px; }
+  .eyebrowB::before { content: ""; width: 40px; height: 1px; background: var(--mintB); }
+  .bantB h2 { font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(30px, 4.8vw, 54px); line-height: 1.08; letter-spacing: -1.2px; margin: 24px 0 0; text-wrap: balance; }
+  .bantB h2 em { font-style: italic; color: var(--mintB); }
+  .alinti { border-left: 2px solid var(--mintB); padding-left: 24px; margin-top: 34px; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 19px; line-height: 1.65; color: #cfe2d6; max-width: 46ch; }
+  .alinti small { display: block; margin-top: 14px; font-family: "Cascadia Code", Consolas, monospace; font-style: normal; font-size: 10px; letter-spacing: 2.2px; text-transform: uppercase; color: var(--bantSoluk); }
+  .ilkeler { border-top: 1px solid #ffffff1f; }
+  .ilke { display: grid; grid-template-columns: 66px 1fr; gap: 20px; padding: 27px 0; border-bottom: 1px solid #ffffff1f; }
+  .ilke .no { font-family: "Fraunces", Georgia, serif; font-size: 30px; color: var(--mintB); line-height: 1; }
+  .ilke h3 { font-size: 15.5px; color: #fff; margin-bottom: 7px; letter-spacing: .1px; }
+  .ilke p { font-size: 13.5px; color: var(--bantSoluk); line-height: 1.75; }
+
+  /* ---- bölüm başlıkları ---- */
+  .bolum { margin-bottom: 58px; scroll-margin-top: 92px; }
+  .acilir { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
+  .acilir.gorunur { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .acilir { opacity: 1; transform: none; transition: none; } .heroCizgiler .akanCizgi { animation: none; } }
+  .bolumUst { display: flex; align-items: baseline; gap: 18px; margin-bottom: 6px; flex-wrap: wrap; }
+  .bolumNo { font-family: "Cascadia Code", Consolas, monospace; font-size: 11px; letter-spacing: 2.4px; color: var(--em); }
+  .bolumUst h2 { font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(24px, 3.2vw, 34px); letter-spacing: -.8px; }
+  .bolumUst .altB { margin-left: auto; font-size: 12.5px; color: var(--soft); }
+  .bolumCizgi { height: 1px; background: var(--cizgiP); margin-bottom: 6px; }
+
+  /* ---- bölüm bantları: dönüşümlü zemin kontrastı ---- */
+  .bolumBant { background: var(--bolumZemin); margin-inline: calc(50% - 50vw); padding-inline: calc(50vw - 50%); padding-block: 40px 50px; }
+
+  /* ---- gündem: yan yana 3B kutular ---- */
+  .haberIzgara { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); gap: 20px; padding-top: 18px; perspective: 1100px; }
+  .haberK {
+    position: relative; background: var(--kartP); border: 1px solid var(--cizgiP); border-radius: 16px;
+    padding: 18px 19px 16px; display: flex; flex-direction: column;
+    box-shadow: 7px 8px 0 -1px var(--emZar), 7px 8px 0 0 var(--emCizgi);
+    transition: transform .22s ease, box-shadow .22s ease;
+  }
+  .haberK:hover { transform: translate(-3px, -4px) rotateX(1.6deg) rotateY(-1.4deg); box-shadow: 11px 13px 0 -1px var(--emZar), 11px 13px 0 0 var(--emCizgi); }
+  .haberK .tarih { font-family: "Cascadia Code", Consolas, monospace; font-size: 10px; letter-spacing: 1.6px; color: var(--em); margin-bottom: 9px; }
+  .haberK h3 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 16.5px; letter-spacing: -.2px; line-height: 1.3; margin-bottom: 8px; }
+  .haberK .ozetH { font-size: 12.5px; color: var(--soft); line-height: 1.7; flex: 1; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+  .haberLinkler { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 13px; }
+  .haberLink { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-family: "Cascadia Code", Consolas, monospace; font-size: 10.5px; letter-spacing: .5px; color: var(--em); background: var(--zeminP); border: 1px solid var(--emCizgi); padding: 6px 13px; border-radius: 999px; transition: background .15s; }
+  .haberLink:hover { background: var(--emZar); }
+  /* en yeni haber: yeşil kutu */
+  .haberK.yeniH { background: linear-gradient(160deg, #14603a, #17803f); border-color: #0f4a2c; }
+  .haberK.yeniH h3 { color: #fff; }
+  .haberK.yeniH .tarih { color: #9fe8bd; }
+  .haberK.yeniH .ozetH { color: #d3e8da; }
+  .haberK.yeniH .haberLink { background: #ffffff12; border-color: #9fe8bd50; color: #d9ffe9; }
+  .haberK.yeniH .haberLink:hover { background: #ffffff22; }
+  .yeniRozet { position: absolute; top: -10px; right: 14px; background: var(--mintB); color: #0c1e15; font-family: "Cascadia Code", Consolas, monospace; font-size: 9.5px; font-weight: 700; letter-spacing: 1.6px; padding: 4px 12px; border-radius: 999px; box-shadow: 0 6px 16px #17803f55; }
+
+  /* ---- lablar: ekran görüntülü kartlar ---- */
+  .labKartlar { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 18px; padding-top: 14px; }
+  .labKart {
+    background: var(--kartP); border: 1px solid var(--cizgiP); border-radius: 18px; overflow: hidden;
+    display: flex; flex-direction: column; cursor: pointer;
+    transition: transform .18s, box-shadow .18s, border-color .18s;
+  }
+  .labKart:hover { transform: translateY(-4px); border-color: var(--em); box-shadow: 0 24px 54px var(--govdeGolge); }
+  .labKart.yakinda { cursor: default; opacity: .8; }
+  .labKart.yakinda:hover { transform: none; border-color: var(--cizgiP); box-shadow: none; }
+  .labGorselKap { position: relative; aspect-ratio: 16 / 8.4; overflow: hidden; background: #0c1e15; }
+  .labGorselKap img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; transition: transform .4s ease; }
+  .labKart:hover .labGorselKap img { transform: scale(1.045); }
+  .labKart.yakinda .labGorselKap img { filter: grayscale(.55) brightness(.72); transform: none !important; }
+  .labRozetX { position: absolute; top: 12px; left: 12px; z-index: 2; font-family: "Cascadia Code", Consolas, monospace; font-size: 9.5px; letter-spacing: 1.6px; background: #0c1e15d9; color: var(--mintB); border: 1px solid #4fe39240; padding: 5px 11px; border-radius: 999px; backdrop-filter: blur(6px); }
+  .labOynat { position: absolute; right: 14px; bottom: 12px; z-index: 2; width: 42px; height: 42px; border-radius: 50%; background: #17803f; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 10px 26px #17803f73; transition: transform .18s; }
+  .labKart:hover .labOynat { transform: scale(1.12); }
+  .labIcX { padding: 17px 20px 20px; display: flex; flex-direction: column; flex: 1; align-items: flex-start; }
+  .labIcX h3 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 19px; letter-spacing: -.3px; margin-bottom: 6px; }
+  .labIcX p { font-size: 13px; color: var(--soft); line-height: 1.65; margin-bottom: 12px; flex: 1; }
+  .labMetaX { display: flex; gap: 14px; flex-wrap: wrap; font-family: "Cascadia Code", Consolas, monospace; font-size: 10px; letter-spacing: 1.2px; color: var(--soft); margin-bottom: 14px; }
+
+  /* ---- sahadan notlar: kayan kapak kartları ---- */
+  .notKaydirici { display: flex; gap: 16px; overflow-x: auto; padding: 14px 4px 18px; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: var(--em) transparent; }
+  .notKartX {
+    scroll-snap-align: start; flex: 0 0 302px;
+    background: var(--kartP); border: 1px solid var(--cizgiP); border-radius: 18px; overflow: hidden;
     display: flex; flex-direction: column;
-    box-shadow: 0 3px 12px #0f2b1a0d; transition: box-shadow .15s, border-color .15s, transform .15s;
+    transition: transform .18s, box-shadow .18s, border-color .18s;
   }
-  .notKart:hover { border-color: var(--vg-cizgi); box-shadow: 0 12px 30px #0f2b1a1a; transform: translateY(-2px); }
-  .notBant { height: 108px; display: block; width: 100%; }
-  .notIc { padding: 19px 22px 22px; display: flex; flex-direction: column; flex: 1; }
-  .notIc h3 { font-size: 16.5px; margin-bottom: 6px; }
-  .notIc p { font-size: 13.5px; color: var(--soluk); line-height: 1.6; margin-bottom: 13px; flex: 1; }
+  .notKartX:hover { transform: translateY(-4px); border-color: var(--em); box-shadow: 0 22px 48px var(--govdeGolge); }
+  .notKapak { position: relative; display: block; aspect-ratio: 16 / 10.5; overflow: hidden; background: #0c1e15; }
+  .notKapak img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; transition: transform .4s ease; }
+  .notKartX:hover .notKapak img { transform: scale(1.05); }
+  .notIcX { padding: 15px 18px 18px; display: flex; flex-direction: column; flex: 1; }
+  .notIcX h3 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 17px; letter-spacing: -.3px; margin-bottom: 5px; }
+  .notIcX p { font-size: 12.5px; color: var(--soft); line-height: 1.6; margin-bottom: 10px; flex: 1; }
+  .notMeta { display: flex; gap: 14px; flex-wrap: wrap; font-family: "Cascadia Code", Consolas, monospace; font-size: 10px; letter-spacing: 1.1px; color: var(--soft); margin-bottom: 12px; }
+  .notAksiyon { display: flex; gap: 14px; align-items: center; }
+  .notAksiyon .pdfL { font-family: "Cascadia Code", Consolas, monospace; font-size: 11px; letter-spacing: .6px; color: var(--soft); text-decoration: none; }
+  .notAksiyon .pdfL:hover { color: var(--em); }
+  .bosKart { border-style: dashed; background: transparent; align-items: center; justify-content: center; min-height: 280px; }
+  .bosKart:hover { transform: none; box-shadow: none; border-color: var(--em); }
+  .bosIc { text-align: center; color: var(--soft); font-size: 12.5px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .bosIc span { font-family: "Fraunces", Georgia, serif; font-size: 34px; color: var(--cizgiP); }
 
-  @media (max-width: 720px) {
-    .hero { grid-template-columns: 1fr; padding: 32px 26px; }
-    .heroArt { max-width: 260px; }
-    .oneCikan { grid-template-columns: 1fr; }
-    .oneGorsel { padding: 20px; }
-    .oneGorsel svg { max-width: 190px; }
-    .marka span span { display: none; }
+  /* ---- kaynaklar (link dizini) ---- */
+  .kaynakIzgara { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; padding-top: 18px; }
+  .kaynak { display: flex; justify-content: space-between; align-items: center; gap: 12px; text-decoration: none; border: 1px solid var(--cizgiP); background: var(--kartP); border-radius: 15px; padding: 17px 19px; color: var(--murekkep); transition: border-color .15s, transform .15s, box-shadow .15s; }
+  .kaynak:hover { border-color: var(--em); transform: translateY(-2px); box-shadow: 0 12px 30px var(--govdeGolge); }
+  .kaynak b { font-size: 13.5px; display: block; margin-top: 3px; }
+  .kaynak small { font-family: "Cascadia Code", Consolas, monospace; font-size: 9px; letter-spacing: 1.8px; color: var(--soft); text-transform: uppercase; }
+  .kaynak .okK { color: var(--em); font-size: 16px; }
+
+  /* ---- hakkımda ---- */
+  .hakk { display: grid; grid-template-columns: 280px 1fr; gap: 58px; align-items: start; padding-top: 30px; }
+  .muhurKap { position: relative; width: 218px; height: 218px; margin: 8px auto 0; }
+  .muhurKap .donen { position: absolute; inset: 0; animation: muhurDon 34s linear infinite; }
+  @keyframes muhurDon { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .muhurKap .donen { animation: none; } }
+  .muhurIc { position: absolute; inset: 34px; border-radius: 50%; border: 1px solid var(--cizgiP); background: var(--kartP); display: flex; align-items: center; justify-content: center; font-family: "Fraunces", Georgia, serif; font-size: 56px; font-weight: 500; color: var(--em); box-shadow: 0 16px 40px var(--govdeGolge); }
+  .hakkIc h3 { font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: clamp(26px, 3.4vw, 36px); letter-spacing: -.7px; margin-bottom: 6px; }
+  .hakkRol { font-family: "Cascadia Code", Consolas, monospace; font-size: 11px; letter-spacing: 2.2px; text-transform: uppercase; color: var(--em); margin-bottom: 20px; }
+  .hakkIc p { font-size: 14.5px; color: var(--soft); line-height: 1.85; max-width: 62ch; margin-bottom: 14px; }
+  .hakkIc p b { color: var(--murekkep); font-weight: 600; }
+  .odaklar { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0 26px; }
+  .kisiBtnlar { display: flex; gap: 10px; flex-wrap: wrap; }
+  .kisiBtn { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; border: 1px solid var(--cizgiP); background: var(--kartP); color: var(--murekkep); border-radius: 12px; padding: 10px 18px; font-size: 13.5px; font-weight: 600; transition: border-color .15s, transform .15s; }
+  .kisiBtn:hover { border-color: var(--em); transform: translateY(-1px); }
+  .hakkNot { margin-top: 22px; font-size: 11.5px; color: var(--soft); border-top: 1px dashed var(--cizgiP); padding-top: 14px; max-width: 62ch; }
+
+  #home .altBilgi { border-top: 1px solid var(--cizgiP); color: var(--soft); }
+  #home .altBilgi b { color: var(--murekkep); }
+  #home .yesilLink { color: var(--em); }
+
+  @media (max-width: 780px) {
+    .heroIc { grid-template-columns: 1fr; gap: 26px; }
+    .ucanAlan { height: auto; display: flex; flex-direction: column; gap: 10px; }
+    .ucanKart { position: static !important; max-width: none; animation: none; }
+    .haber { grid-template-columns: 1fr; gap: 10px; }
+    .haber .okH { display: none; }
+    .notKartX { flex-basis: 262px; }
+    .bolum { margin-bottom: 48px; }
   }
 
   /* ================= LAB ÜST ARAÇ ÇUBUĞU ================= */
@@ -421,189 +603,169 @@
     <nav class="portalNav" aria-label="Ana gezinme">
       <a class="marka" href="#home">
         <span class="amblem">🛡️</span>
-        <span><span>Veri Dayanıklılığı</span><small>Heroes Start Here</small></span>
+        <small>Veri Dayanıklılığı</small>
       </a>
       <div class="navLinkler">
-        <a href="#haberler">📰 Haberler</a>
-        <a href="#simulasyon">🧪 Simülasyon</a>
-        <a href="#sahadan">📝 Sahadan Notlar</a>
+        <a href="#haberler">Gündem</a>
+        <a href="#simulasyon">Lablar</a>
+        <a href="#sahadan">Notlar</a>
+        <a href="#kaynaklar">Kaynaklar</a>
+        <a href="hakkimda.html">Hakkımda</a>
       </div>
+      <button class="temaBtn" id="temaBtn" title="Karanlık / aydınlık tema" aria-label="Temayı değiştir">🌙</button>
       <span class="surumPul surumJs">Beta 1.0</span>
     </nav>
 
-    <header class="hero">
-      <div>
-        <span class="heroRozet"><span class="dot"></span> Heroes Start Here</span>
-        <h1>Veeam ile Veri Dayanıklılığı Platformu</h1>
-        <p>Haberler, gerçek arayüzde interaktif lab simülasyonları ve sahadan notlar — veri dayanıklılığını tek portalda, uygulayarak öğren.</p>
-        <div class="heroBtnlar">
-          <button class="btnP" onclick="labAc()">🧪 Lab'ı Başlat</button>
-          <a class="btnHayalet" href="#haberler">Portala Göz At ↓</a>
+    <!-- SİNEMATİK HERO: kontrast bant + uçuşan içerik kartları -->
+    <header class="heroBant">
+      <div class="heroIc">
+        <div class="heroYazi">
+          <div class="heroEyebrow">Heroes Start Here</div>
+          <h1>Veeam ile <em>Veri Dayanıklılığı</em> Bilgi Platformu</h1>
+          <p class="heroAlt">Gündem, gerçek Veeam web arayüzünde <b>interaktif lab simülasyonları</b> ve sahadan damıtılmış notlar — ezberden değil, uygulayarak.</p>
+          <div class="heroBtnlar">
+            <button class="btnP" onclick="labAc()">Lab'ı Başlat →</button>
+            <a class="btnHayalet" href="#sahadan">Notları Keşfet</a>
+          </div>
+          <div class="statSerit">
+            <div class="statKutu"><b id="statLab">—</b><span>Lab Başlatma</span></div>
+            <div class="statKutu"><b id="statOkuma">—</b><span>Not Okuma</span></div>
+          </div>
+        </div>
+        <div class="ucanAlan" aria-label="Yeni içerikler">
+          <a class="ucanKart" href="#simulasyon" style="top:4%; left:4%; animation-delay:0s">
+            <small>YENİ · LAB 01</small>
+            <b>SQL VM Ajansız Yedekleme</b>
+            <span class="altS">Gerçek VBR arayüzünde, puanlı →</span>
+          </a>
+          <a class="ucanKart" href="#haberler" style="top:36%; right:0; animation-delay:-2.4s">
+            <small>GÜNDEM · 2026-07</small>
+            <b>Gartner MQ: 10. kez Lider</b>
+            <span class="altS">Anand Eswaran'ın paylaşımı →</span>
+          </a>
+          <a class="ucanKart" href="notlar/vsa-authentication-yontemleri.html" style="bottom:2%; left:14%; animation-delay:-4.8s">
+            <small>NOT · VSA v13</small>
+            <b>Authentication Yöntemleri</b>
+            <span class="altS">NTLM'siz dünyaya hazır mısın? →</span>
+          </a>
         </div>
       </div>
-      <svg class="heroArt" viewBox="0 0 330 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <defs>
-          <linearGradient id="hgCam" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#ffffff22"/><stop offset="1" stop-color="#ffffff0d"/>
-          </linearGradient>
-        </defs>
-        <path id="hYol1" d="M 78 120 C 120 120 130 78 165 78" fill="none" stroke="#9fe8bd55" stroke-width="3" stroke-dasharray="6 7"/>
-        <path id="hYol2" d="M 78 120 C 120 120 130 162 165 162" fill="none" stroke="#9fe8bd55" stroke-width="3" stroke-dasharray="6 7"/>
-        <path id="hYol3" d="M 205 78 C 240 78 248 118 282 118" fill="none" stroke="#9fe8bd55" stroke-width="3" stroke-dasharray="6 7"/>
-        <path id="hYol4" d="M 205 162 C 240 162 248 122 282 122" fill="none" stroke="#9fe8bd55" stroke-width="3" stroke-dasharray="6 7"/>
-        <g>
-          <rect x="18" y="90" width="60" height="60" rx="14" fill="url(#hgCam)" stroke="#ffffff44"/>
-          <text x="48" y="127" text-anchor="middle" font-size="24">🗄️</text>
-          <text x="48" y="168" text-anchor="middle" font-size="9" fill="#cfe9da" font-weight="600">VERİ</text>
-        </g>
-        <g>
-          <rect x="160" y="48" width="50" height="50" rx="12" fill="url(#hgCam)" stroke="#ffffff44"/>
-          <text x="185" y="80" text-anchor="middle" font-size="20">🧪</text>
-          <text x="185" y="112" text-anchor="middle" font-size="9" fill="#cfe9da" font-weight="600">LAB</text>
-        </g>
-        <g>
-          <rect x="160" y="136" width="50" height="50" rx="12" fill="url(#hgCam)" stroke="#ffffff44"/>
-          <text x="185" y="168" text-anchor="middle" font-size="20">📝</text>
-          <text x="185" y="200" text-anchor="middle" font-size="9" fill="#cfe9da" font-weight="600">NOTLAR</text>
-        </g>
-        <g>
-          <rect x="278" y="86" width="42" height="68" rx="12" fill="#ffffff2b" stroke="#9fe8bd77"/>
-          <text x="299" y="127" text-anchor="middle" font-size="19">🦸</text>
-          <text x="299" y="170" text-anchor="middle" font-size="9" fill="#9fe8bd" font-weight="700">HERO</text>
-        </g>
-        <circle r="4" fill="#9fe8bd"><animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#hYol1"/></animateMotion></circle>
-        <circle r="4" fill="#9fe8bd"><animateMotion dur="2.6s" begin="1.3s" repeatCount="indefinite"><mpath href="#hYol2"/></animateMotion></circle>
-        <circle r="4" fill="#fff"><animateMotion dur="2.6s" begin="0.6s" repeatCount="indefinite"><mpath href="#hYol3"/></animateMotion></circle>
-        <circle r="4" fill="#fff"><animateMotion dur="2.6s" begin="1.9s" repeatCount="indefinite"><mpath href="#hYol4"/></animateMotion></circle>
-      </svg>
     </header>
 
-    <!-- HABERLER -->
-    <section class="bolum" id="haberler">
+    <!-- 01 GÜNDEM -->
+    <section class="bolum acilir" id="haberler">
       <div class="bolumUst">
-        <span class="bolumIkon">📰</span>
-        <div><h2>Haberler</h2><div class="altB">Önemli duyurular ve bağlantılar</div></div>
-        <span class="etiket sagUc" title="RSS beslemesi ileride eklenecek">RSS · yakında</span>
+        <span class="bolumNo">01</span>
+        <h2 class="fSerif">Gündem</h2>
+        <span class="altB">Önemli gelişmeler · RSS yakında</span>
       </div>
-      <div class="haberListe" id="haberListe"></div>
+      <div class="bolumCizgi"></div>
+      <div class="haberIzgara" id="haberListe"></div>
     </section>
 
-    <!-- SİMÜLASYON -->
-    <section class="bolum" id="simulasyon">
+    <!-- 02 LABLAR -->
+    <section class="bolum bolumBant acilir" id="simulasyon">
       <div class="bolumUst">
-        <span class="bolumIkon">🧪</span>
-        <div><h2>Lab / Simülasyon</h2><div class="altB">Gerçek Veeam web arayüzünün birebir kopyasında, uygulayarak öğren</div></div>
+        <span class="bolumNo">02</span>
+        <h2 class="fSerif">İnteraktif Lablar</h2>
+        <span class="altB">Gerçek arayüzde, puanlı simülasyon</span>
       </div>
-      <article class="oneCikan">
-        <div class="oneGorsel">
-          <svg viewBox="0 0 230 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect x="6" y="10" width="218" height="150" rx="12" fill="#ffffff" stroke="#ffffff55"/>
-            <rect x="6" y="10" width="218" height="26" rx="12" fill="#166b38"/>
-            <rect x="6" y="24" width="218" height="12" fill="#166b38"/>
-            <circle cx="22" cy="23" r="4" fill="#9fe8bd"/>
-            <rect x="34" y="19" width="82" height="8" rx="4" fill="#ffffff88"/>
-            <rect x="18" y="48" width="56" height="9" rx="4.5" fill="#17803f"/>
-            <rect x="18" y="66" width="46" height="8" rx="4" fill="#d9dcdb"/>
-            <rect x="18" y="82" width="50" height="8" rx="4" fill="#d9dcdb"/>
-            <rect x="18" y="98" width="42" height="8" rx="4" fill="#d9dcdb"/>
-            <line x1="86" y1="44" x2="86" y2="150" stroke="#e3e6e4" stroke-width="2"/>
-            <rect x="98" y="50" width="100" height="10" rx="5" fill="#1f2428" opacity=".8"/>
-            <rect x="98" y="70" width="112" height="9" rx="4.5" fill="#eef1f0" stroke="#d9dcdb"/>
-            <rect x="98" y="86" width="112" height="9" rx="4.5" fill="#eef1f0" stroke="#d9dcdb"/>
-            <rect x="98" y="112" width="76" height="9" rx="4.5" fill="#e7f4ec" stroke="#bfe3cd"/>
-            <rect x="98" y="112" width="46" height="9" rx="4.5" fill="#17803f"/>
-            <circle cx="188" cy="132" r="17" fill="#17803f"/>
-            <path d="M 183 124 L 197 132 L 183 140 Z" fill="#fff"/>
-          </svg>
-        </div>
-        <div class="oneIcerik">
-          <h3>SQL VM Ajansız Yedekleme (Agentless Backup)</h3>
-          <p>Veeam Backup &amp; Replication web konsolunda, üretimdeki SQL Server sanal makinesi için ajan kurmadan, uygulama tutarlı bir yedekleme görevi oluştur. Gerçek "New Backup Job" sihirbazının birebir simülasyonu — sonunda veri akışını canlı izle.</p>
-          <div class="etiketler">
-            <span class="etiket yesil">İnteraktif Lab</span>
-            <span class="etiket">VBR Web UI</span>
-            <span class="etiket">Puanlı</span>
-            <span class="etiket">~5 dk</span>
-            <span class="etiket" id="labSayacKart" hidden>👥 —</span>
+      <div class="bolumCizgi"></div>
+      <div class="labKartlar">
+        <article class="labKart" onclick="labAc()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')labAc()">
+          <div class="labGorselKap">
+            <img src="gorseller/lab-sql-vm.png" alt="VBR web arayüzünde New Backup Job sihirbazı ekran görüntüsü" loading="lazy">
+            <span class="labRozetX">LAB 01 · VBR WEB UI</span>
+            <span class="labOynat">▶</span>
           </div>
-          <button class="btnP" onclick="labAc()">Lab'ı Başlat →</button>
-        </div>
-      </article>
+          <div class="labIcX">
+            <h3>SQL VM Ajansız Yedekleme</h3>
+            <p>Ajan kurmadan, uygulama tutarlı bir yedekleme görevi oluştur. Gerçek "New Backup Job" sihirbazının birebir simülasyonu; sonunda veri akışını canlı izle.</p>
+            <div class="labMetaX">
+              <span>~5 DK</span>
+              <span>100 PUAN</span>
+              <span id="labSayacKart" hidden>👥 —</span>
+            </div>
+            <button class="btnP" onclick="event.stopPropagation(); labAc()">Lab'ı Başlat →</button>
+          </div>
+        </article>
+        <article class="labKart yakinda" aria-disabled="true">
+          <div class="labGorselKap">
+            <img src="gorseller/lab-kurtarma-yakinda.png" alt="Kurtarma lab'ı önizlemesi" loading="lazy">
+            <span class="labRozetX">LAB 02 · YAKINDA</span>
+          </div>
+          <div class="labIcX">
+            <h3>Kurtarma: O Veritabanını Geri Getir</h3>
+            <p>Silinen SQL veritabanını point-in-time kurtarma ile geri getir. Instant Recovery ve granüler kurtarma seçenekleri — hazırlık aşamasında.</p>
+            <div class="labMetaX"><span>YAKINDA</span></div>
+            <button class="btnP" disabled style="opacity:.45; cursor:default">Hazırlanıyor…</button>
+          </div>
+        </article>
+      </div>
     </section>
 
-    <!-- SAHADAN NOTLAR -->
-    <section class="bolum" id="sahadan">
+    <!-- 03 SAHADAN NOTLAR -->
+    <section class="bolum acilir" id="sahadan">
       <div class="bolumUst">
-        <span class="bolumIkon">📝</span>
-        <div><h2>Sahadan Notlar</h2><div class="altB">Saha deneyiminden damıtılmış, kaydırmalı rehberler</div></div>
+        <span class="bolumNo">03</span>
+        <h2 class="fSerif">Sahadan Notlar</h2>
+        <span class="altB">Kaydırmalı rehberler · PDF sürümleriyle</span>
       </div>
-      <div class="notGrid">
-        <article class="notKart">
-          <svg class="notBant" viewBox="0 0 340 108" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect width="340" height="108" fill="#e7f4ec"/>
-            <path d="M 170 22 L 170 38 M 170 38 L 96 38 L 96 54 M 170 38 L 244 38 L 244 54" stroke="#17803f" stroke-width="2.5" fill="none"/>
-            <path d="M 96 78 L 96 86 M 244 78 L 244 86" stroke="#bfe3cd" stroke-width="2.5"/>
-            <rect x="134" y="8" width="72" height="20" rx="7" fill="#17803f"/>
-            <text x="170" y="22" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">SQL Server</text>
-            <rect x="56" y="54" width="80" height="22" rx="7" fill="#ffffff" stroke="#bfe3cd"/>
-            <text x="96" y="69" text-anchor="middle" fill="#1f2428" font-size="9.5" font-weight="600">🖥 Fiziksel</text>
-            <rect x="204" y="54" width="80" height="22" rx="7" fill="#ffffff" stroke="#bfe3cd"/>
-            <text x="244" y="69" text-anchor="middle" fill="#1f2428" font-size="9.5" font-weight="600">☁️ VM</text>
-            <rect x="42" y="86" width="52" height="14" rx="5" fill="#d9efe2"/>
-            <rect x="104" y="86" width="52" height="14" rx="5" fill="#d9efe2"/>
-            <rect x="190" y="86" width="52" height="14" rx="5" fill="#d9efe2"/>
-            <rect x="252" y="86" width="52" height="14" rx="5" fill="#d9efe2"/>
-          </svg>
-          <div class="notIc">
-            <h3>🌳 SQL Backup Karar Rehberi</h3>
-            <p>Fiziksel mi VM mi, yönetim Altyapı'da mı DBA'de mi? Ajansız imaj yedekleme, Veeam Agent ve SQL Plug-in'i tek karar ağacında karşılaştıran saha rehberi.</p>
-            <div class="etiketler">
-              <span class="etiket yesil">Karar Ağacı</span>
-              <span class="etiket">4 kart</span>
-              <span class="etiket" id="notSayacSql" hidden>👥 —</span>
-            </div>
-            <div style="display:flex; gap:14px; align-items:center;">
+      <div class="notKaydirici">
+        <article class="notKartX">
+          <a class="notKapak" href="notlar/sql-backup-karar-rehberi.html">
+            <img src="gorseller/not-sql-kapak.png" alt="SQL Backup Karar Rehberi — karar ağacı kartı" loading="lazy">
+            <span class="labRozetX">KARAR AĞACI · 4 KART</span>
+          </a>
+          <div class="notIcX">
+            <h3>SQL Backup Karar Rehberi</h3>
+            <p>Fiziksel mi VM mi, Altyapı mı DBA mı? Agent / VM Backup / SQL Plug-in tek ağaçta.</p>
+            <div class="notMeta"><span id="notSayacSql" hidden>👥 —</span></div>
+            <div class="notAksiyon">
               <a class="btnP" href="notlar/sql-backup-karar-rehberi.html">Oku →</a>
-              <a class="yesilLink" style="text-decoration:none" href="notlar/sql-backup-karar-rehberi.pdf" target="_blank" rel="noopener">PDF ⇩</a>
+              <a class="pdfL" href="notlar/sql-backup-karar-rehberi.pdf" target="_blank" rel="noopener">PDF ⇩</a>
             </div>
           </div>
         </article>
-        <article class="notKart">
-          <svg class="notBant" viewBox="0 0 340 108" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect width="340" height="108" fill="#0c3520"/>
-            <path d="M 170 16 L 200 26 L 200 58 C 200 78 186 90 170 96 C 154 90 140 78 140 58 L 140 26 Z" fill="#17803f" stroke="#9fe8bd" stroke-width="2"/>
-            <circle cx="170" cy="50" r="9" fill="none" stroke="#fff" stroke-width="2.5"/>
-            <rect x="167.5" y="56" width="5" height="16" rx="2.5" fill="#fff"/>
-            <rect x="36" y="40" width="76" height="20" rx="10" fill="#ffffff14" stroke="#9fe8bd55"/>
-            <text x="74" y="54" text-anchor="middle" fill="#9fe8bd" font-size="10" font-weight="700">🎫 Kerberos</text>
-            <rect x="228" y="40" width="76" height="20" rx="10" fill="#ffffff14" stroke="#9fe8bd55"/>
-            <text x="266" y="54" text-anchor="middle" fill="#9fe8bd" font-size="10" font-weight="700">📜 Sertifika</text>
-            <text x="74" y="84" text-anchor="middle" fill="#5f7a6b" font-size="10" font-weight="700" text-decoration="line-through">NTLM</text>
-          </svg>
-          <div class="notIc">
-            <h3>🔐 VSA ile Authentication Yöntemleri</h3>
-            <p>VSA (v13) yalnızca Kerberos ve sertifikayı native konuşur — NTLM kaldırıldı. Neden bu tercih, hangi hatalarla anlaşılır ve üç kurulum yolu.</p>
-            <div class="etiketler">
-              <span class="etiket yesil">VSA · v13</span>
-              <span class="etiket">6 kart</span>
-              <span class="etiket" id="notSayacVsa" hidden>👥 —</span>
-            </div>
-            <div style="display:flex; gap:14px; align-items:center;">
+        <article class="notKartX">
+          <a class="notKapak" href="notlar/vsa-authentication-yontemleri.html">
+            <img src="gorseller/not-vsa-kapak.png" alt="VSA ile Authentication Yöntemleri — kapak kartı" loading="lazy">
+            <span class="labRozetX">VSA · V13 · 6 KART</span>
+          </a>
+          <div class="notIcX">
+            <h3>VSA ile Authentication Yöntemleri</h3>
+            <p>Kerberos ve sertifika native; NTLM yok. Üç kurulum yolu ve karar ağacı.</p>
+            <div class="notMeta"><span id="notSayacVsa" hidden>👥 —</span></div>
+            <div class="notAksiyon">
               <a class="btnP" href="notlar/vsa-authentication-yontemleri.html">Oku →</a>
-              <a class="yesilLink" style="text-decoration:none" href="notlar/vsa-authentication-yontemleri.pdf" target="_blank" rel="noopener">PDF ⇩</a>
+              <a class="pdfL" href="notlar/vsa-authentication-yontemleri.pdf" target="_blank" rel="noopener">PDF ⇩</a>
             </div>
           </div>
+        </article>
+        <article class="notKartX bosKart" aria-hidden="true">
+          <div class="bosIc"><span>+</span>Yeni not yakında</div>
         </article>
       </div>
+    </section>
+
+    <!-- 04 KAYNAKLAR -->
+    <section class="bolum bolumBant acilir" id="kaynaklar">
+      <div class="bolumUst">
+        <span class="bolumNo">04</span>
+        <h2 class="fSerif">Kaynaklar</h2>
+        <span class="altB">Sık kullanılan bağlantılar</span>
+      </div>
+      <div class="bolumCizgi"></div>
+      <div class="kaynakIzgara" id="kaynakListe"></div>
     </section>
 
     <footer class="altBilgi">
       <span class="surumPul surumJs">Beta 1.0</span>
-      <span>Veeam ile Veri Dayanıklılığı Platformu</span>
+      <span>Veeam ile Veri Dayanıklılığı Bilgi Platformu</span>
       <span id="sayac" hidden>· 👥 <b id="sayacDeger">—</b> ziyaret</span>
+      <a class="yesilLink" style="text-decoration:none; margin-left:auto" href="hakkimda.html">Hakkımda →</a>
     </footer>
   </section>
-
   <!-- ==================== LAB ==================== -->
   <section id="lab" hidden>
     <div class="labArac">
@@ -865,42 +1027,110 @@
 const SURUM = "Beta 1.0";
 document.querySelectorAll(".surumJs").forEach(e => e.textContent = SURUM);
 
-/* ==================== HABERLER ====================
-   Yeni haber eklemek için bu listeye satır ekle; en yeni en üstte görünür. */
+/* ==================== TEMA (açık varsayılan, karanlık seçmeli) ==================== */
+const temaBtn = document.getElementById("temaBtn");
+function temaUygula(koyu) {
+  document.body.classList.toggle("koyu", koyu);
+  temaBtn.textContent = koyu ? "☀️" : "🌙";
+  localStorage.setItem("tema", koyu ? "koyu" : "acik");
+}
+temaBtn.onclick = () => temaUygula(!document.body.classList.contains("koyu"));
+temaUygula(localStorage.getItem("tema") === "koyu");
+
+/* hero paralaks: yazı ve uçan kutular ayrı katmanlarda hareket eder */
+(() => {
+  const bant = document.querySelector(".heroBant");
+  const alan = document.querySelector(".ucanAlan");
+  const yazi = document.querySelector(".heroYazi");
+  if (!bant || !alan || !yazi) return;
+  if (!matchMedia("(pointer: fine)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  bant.addEventListener("mousemove", e => {
+    const k = bant.getBoundingClientRect();
+    const x = (e.clientX - k.left) / k.width - .5;
+    const y = (e.clientY - k.top) / k.height - .5;
+    alan.style.transform = `translate(${(x * 20).toFixed(1)}px, ${(y * 14).toFixed(1)}px)`;
+    yazi.style.transform = `translate(${(x * -7).toFixed(1)}px, ${(y * -5).toFixed(1)}px)`;
+  });
+  bant.addEventListener("mouseleave", () => { alan.style.transform = ""; yazi.style.transform = ""; });
+})();
+
+/* ==================== GÜNDEM ====================
+   Yeni haber eklemek için listeye satır ekle; en yeni en üstte görünür.
+   linkler: haber metninden ayrı, altta çip olarak gösterilir. */
 const haberler = [
+  {
+    tarih: "2026-07", etiket: "Analist",
+    baslik: "Gartner MQ: Veeam üst üste 10. kez Lider",
+    ozet: "2026 Gartner® Magic Quadrant™ (Backup and Data Protection Platforms) sonuçları açıklandı: Veeam üst üste 10. kez Lider, 'Ability to Execute' ekseninde üst üste 7. yıl en üstte ve pazar payında #1. CEO Anand Eswaran'ın çerçevesi net: soru artık 'Geri yükleyebilir miyiz?' değil — 'Bir aksaklık yaşandığında, etkilenen noktayı sıfır iş kesintisiyle izole edip anında eski hâline döndürebiliyor muyuz?' Güvenlik, yönetişim, gizlilik, uyumluluk ve dayanıklılık tek bir zekâ katmanında birleşiyor.",
+    linkler: [
+      { ad: "LinkedIn paylaşımı", url: "https://www.linkedin.com/posts/anandeswaran_veeam-activity-7480315868095221761-QkYd" }
+    ]
+  },
   {
     tarih: "2025-10", etiket: "Sürüm",
     baslik: "Veeam Data Platform v13 ve Veeam Software Appliance",
-    ozet: "Linux tabanlı, önceden sıkılaştırılmış appliance (VSA) ve yeni web konsolu ile v13 yayında — bu portaldaki lab da aynı arayüzü simüle ediyor.",
-    url: "https://www.veeam.com/whats-new"
+    ozet: "Linux tabanlı, önceden sıkılaştırılmış appliance (VSA) ve yeni web konsolu ile v13 yayında — bu platformdaki lab da aynı arayüzü simüle ediyor.",
+    linkler: [
+      { ad: "Yenilikler", url: "https://www.veeam.com/whats-new" }
+    ]
   },
   {
-    tarih: "2025-06", etiket: "Rapor",
-    baslik: "2025 Fidye Yazılımı Trendleri Raporu",
+    tarih: "2026", etiket: "Rapor",
+    baslik: "2026 Fidye Yazılımı Trendleri Raporu",
     ozet: "Saldırıya uğrayan kurumların verilerinden çıkarılan dersler: fidye ödemek veriyi geri getirmiyor, değişmez yedek hayat kurtarıyor.",
-    url: "https://go.veeam.com/ransomware-trends"
-  },
-  {
-    tarih: "Sürekli", etiket: "Doküman",
-    baslik: "VBR v13 Kullanım Kılavuzu (Web UI)",
-    ozet: "Bu portaldaki lab'ların birebir referansı: New Backup Job sihirbazı ve tüm web konsolu adımları resmi kılavuzda.",
-    url: "https://helpcenter.veeam.com/docs/vbr/userguide/overview.html?ver=13"
-  },
-  {
-    tarih: "Sürekli", etiket: "Topluluk",
-    baslik: "Veeam Community Hub",
-    ozet: "Ürün ekipleri ve sahadaki uzmanlarla aynı masada: soru sor, en iyi pratikleri ve yol haritası ipuçlarını takip et.",
-    url: "https://community.veeam.com/"
+    linkler: [
+      { ad: "Raporu incele", url: "https://go.veeam.com/ransomware-trends" }
+    ]
   },
 ];
-document.getElementById("haberListe").innerHTML = haberler.map(h => `
-  <article class="haber">
-    <span class="tarih">${h.tarih}</span>
-    <div class="icH">
-      <h3><a href="${h.url}" target="_blank" rel="noopener">${h.baslik}</a><span class="etiket yesil">${h.etiket}</span></h3>
-      <div class="ozetH">${h.ozet}</div>
-    </div>
+document.getElementById("haberListe").innerHTML = haberler.map((h, i) => `
+  <article class="haberK ${i === 0 ? "yeniH" : ""}">
+    ${i === 0 ? '<span class="yeniRozet">YENİ</span>' : ""}
+    <div class="tarih">${h.tarih}</div>
+    <h3>${h.baslik}</h3>
+    <div class="ozetH">${h.ozet}</div>
+    <div class="haberLinkler">${h.linkler.map(l => `<a class="haberLink" href="${l.url}" target="_blank" rel="noopener">${l.ad} ↗</a>`).join("")}</div>
   </article>`).join("");
+
+/* ==================== KAYNAKLAR (link dizini) ==================== */
+const kaynaklar = [
+  { tur: "Doküman", ad: "VBR v13 Kullanım Kılavuzu", url: "https://helpcenter.veeam.com/docs/vbr/userguide/overview.html?ver=13" },
+  { tur: "Ürün", ad: "Veeam — Yenilikler", url: "https://www.veeam.com/whats-new" },
+  { tur: "Topluluk", ad: "Veeam Community Hub", url: "https://community.veeam.com/" },
+  { tur: "Rapor", ad: "2026 Ransomware Trendleri", url: "https://go.veeam.com/ransomware-trends" },
+  { tur: "Doküman", ad: "Kerberos Kimlik Doğrulama", url: "https://helpcenter.veeam.com/docs/vbr/userguide/kerberos_authentication.html" },
+  { tur: "GitHub", ad: "Bu Platformun Kaynak Kodu", url: "https://github.com/bulenttolu/backup-heroes" },
+];
+document.getElementById("kaynakListe").innerHTML = kaynaklar.map(k => `
+  <a class="kaynak" href="${k.url}" target="_blank" rel="noopener">
+    <span><small>${k.tur}</small><b>${k.ad}</b></span>
+    <span class="okK">↗</span>
+  </a>`).join("");
+
+/* ==================== CANLI İSTATİSTİKLER ==================== */
+function sayacCanlandir(id, hedef) {
+  const el = document.getElementById(id);
+  if (!el || typeof hedef !== "number") return;
+  if (document.hidden) { el.textContent = hedef.toLocaleString("tr-TR"); return; }
+  const t0 = performance.now(), sure = 950;
+  const adim = (t) => {
+    const k = Math.min(1, (t - t0) / sure);
+    el.textContent = Math.round(hedef * (1 - Math.pow(1 - k, 3))).toLocaleString("tr-TR");
+    if (k < 1) requestAnimationFrame(adim);
+  };
+  requestAnimationFrame(adim);
+}
+let notOkumaToplam = 0;
+
+/* kaydırınca beliriş (IO yoksa ya da sekme gizliyse doğrudan göster) */
+(() => {
+  const hepsiniGoster = () => document.querySelectorAll(".acilir:not(.gorunur)").forEach(e => e.classList.add("gorunur"));
+  if (!("IntersectionObserver" in window) || document.hidden) { hepsiniGoster(); return; }
+  const g = new IntersectionObserver(girisler => girisler.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add("gorunur"); g.unobserve(e.target); }
+  }), { threshold: .12 });
+  document.querySelectorAll(".acilir").forEach(el => g.observe(el));
+})();
 
 /* navigasyonda aktif bölüm vurgusu */
 (() => {
@@ -911,7 +1141,7 @@ document.getElementById("haberListe").innerHTML = haberler.map(h => `
       linkler.forEach(l => l.classList.toggle("aktifNav", l.getAttribute("href") === "#" + g.target.id));
     });
   }, { rootMargin: "-30% 0px -55% 0px" });
-  ["haberler", "simulasyon", "sahadan"].forEach(id => izleyici.observe(document.getElementById(id)));
+  ["haberler", "simulasyon", "sahadan", "kaynaklar"].forEach(id => izleyici.observe(document.getElementById(id)));
 })();
 (async function sayacYukle() {
   /* Sayaç verisi Abacus servisinde tutulur: site güncellemeleri sayacı sıfırlamaz.
@@ -924,6 +1154,7 @@ document.getElementById("haberListe").innerHTML = haberler.map(h => `
     if (tip === "hit") localStorage.setItem("sayacGun", bugun);
     document.getElementById("sayacDeger").textContent = (j.value ?? 0).toLocaleString("tr-TR");
     document.getElementById("sayac").hidden = false;
+    sayacCanlandir("statZiyaret", j.value ?? 0);
   } catch { /* servis erişilemezse sayaç sessizce gizli kalır */ }
 })();
 
@@ -934,6 +1165,7 @@ function labSayacGoster(deger) {
   kart.textContent = "👥 " + metin + " başlatma"; kart.hidden = false;
   const ust = document.getElementById("labSayacUst");
   ust.innerHTML = "👥 <b>" + metin + "</b>"; ust.hidden = false;
+  sayacCanlandir("statLab", deger ?? 0);
 }
 async function labSayac(tip) {
   try {
@@ -953,6 +1185,8 @@ async function notSayacGoster(anahtar, elId) {
       const e = document.getElementById(elId);
       e.textContent = "👥 " + j.value.toLocaleString("tr-TR") + " okuma";
       e.hidden = false;
+      notOkumaToplam += j.value;
+      sayacCanlandir("statOkuma", notOkumaToplam);
     }
   } catch { /* servis yoksa gizli kalır */ }
 }
@@ -963,6 +1197,7 @@ notSayacGoster("not-vsa-auth", "notSayacVsa");
 function labAc() {
   document.getElementById("home").hidden = true;
   document.getElementById("lab").hidden = false;
+  document.body.classList.add("labModu");
   ekranGoster("labGiris");
   puan = 0; puanYaz();
   history.replaceState(null, "", "#sql-vm-yedekleme");
@@ -976,6 +1211,7 @@ function labAc() {
 function anaSayfa() {
   document.getElementById("lab").hidden = true;
   document.getElementById("home").hidden = false;
+  document.body.classList.remove("labModu");
   history.replaceState(null, "", location.pathname);
   window.scrollTo({ top: 0 });
 }
