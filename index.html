@@ -614,13 +614,21 @@ function labAc() {
   document.getElementById("lab").hidden = false;
   ekranGoster("labGiris");
   puan = 0; puanYaz();
+  history.replaceState(null, "", "#sql-vm-yedekleme");
   window.scrollTo({ top: 0 });
 }
 function anaSayfa() {
   document.getElementById("lab").hidden = true;
   document.getElementById("home").hidden = false;
+  history.replaceState(null, "", location.pathname);
   window.scrollTo({ top: 0 });
 }
+/* derin bağlantı: #sql-vm-yedekleme ile lab doğrudan açılır (ör. LinkedIn paylaşımı) */
+function rotaIsle() {
+  if (location.hash.replace(/^#\/?/, "") === "sql-vm-yedekleme") labAc();
+}
+window.addEventListener("hashchange", rotaIsle);
+rotaIsle();
 function ekranGoster(id) {
   ["labGiris", "labPencere", "labBitis"].forEach(e => document.getElementById(e).hidden = (e !== id));
 }
