@@ -60,32 +60,109 @@
   .btnP:hover:not(:disabled) { background: var(--vg-koyu); transform: translateY(-1px); }
   .btnP:disabled { opacity: .4; cursor: not-allowed; }
 
-  /* ================= PLATFORM ANA SAYFA ================= */
-  #home h1 { font-size: clamp(28px, 4.5vw, 40px); font-weight: 700; margin: 18px 0 8px; text-wrap: balance; }
-  #home .alt { font-size: 16.5px; color: var(--soluk); max-width: 640px; line-height: 1.65; margin-bottom: 34px; }
-  .bolumBaslik { display: flex; align-items: center; gap: 14px; margin: 0 0 14px; }
-  .bolumBaslik h2 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--soluk); font-weight: 700; white-space: nowrap; }
-  .bolumBaslik .cizgi { flex: 1; height: 1px; background: var(--cizgi); }
-
-  .ucKart {
-    background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 14px;
-    padding: 26px 28px; max-width: 660px; display: flex; gap: 22px; align-items: flex-start;
-    box-shadow: 0 2px 10px #0f2b1a0d; transition: box-shadow .15s, border-color .15s;
-  }
-  .notGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; max-width: 900px; }
-  .notGrid .ucKart { max-width: none; }
+  /* ================= PORTAL ANA SAYFA ================= */
+  html { scroll-behavior: smooth; }
   a.btnP { text-decoration: none; }
-  .ucKart:hover { border-color: var(--vg-cizgi); box-shadow: 0 8px 24px #0f2b1a14; }
-  .ucKart .ikon {
-    width: 58px; height: 58px; border-radius: 13px; flex-shrink: 0;
-    background: var(--vg-acik); border: 1px solid var(--vg-cizgi);
-    display: flex; align-items: center; justify-content: center; font-size: 28px;
-  }
-  .ucKart h3 { font-size: 19px; margin-bottom: 6px; }
-  .ucKart p { font-size: 14px; color: var(--soluk); line-height: 1.65; margin-bottom: 14px; }
   .etiketler { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 16px; }
   .etiket { font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--zemin2); color: var(--soluk); border: 1px solid var(--cizgi); }
   .etiket.yesil { background: var(--vg-acik); color: var(--vg); border-color: var(--vg-cizgi); }
+
+  /* yapışkan navigasyon */
+  .portalNav {
+    position: sticky; top: 10px; z-index: 30;
+    display: flex; align-items: center; gap: 14px;
+    background: #ffffffe6; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--cizgi); border-radius: 14px;
+    padding: 9px 16px; margin-bottom: 20px;
+    box-shadow: 0 8px 24px #0f2b1a14;
+  }
+  .marka { display: flex; gap: 10px; align-items: center; text-decoration: none; color: var(--metin); font-weight: 800; font-size: 14.5px; line-height: 1.15; }
+  .marka .amblem { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(145deg, #135c33, #17803f); display: flex; align-items: center; justify-content: center; font-size: 17px; }
+  .marka small { display: block; font-size: 9.5px; letter-spacing: 1.4px; color: var(--vg); font-weight: 700; text-transform: uppercase; }
+  .navLinkler { display: flex; gap: 4px; margin-left: auto; overflow-x: auto; }
+  .navLinkler a { text-decoration: none; color: var(--soluk); font-size: 13.5px; font-weight: 600; padding: 7px 13px; border-radius: 9px; white-space: nowrap; transition: color .12s, background .12s; }
+  .navLinkler a:hover, .navLinkler a.aktifNav { color: var(--vg); background: var(--vg-acik); }
+
+  /* hero */
+  .hero {
+    position: relative; overflow: hidden;
+    display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; align-items: center;
+    background: linear-gradient(135deg, #0c3520 0%, #135c33 58%, #1a8a46 100%);
+    border-radius: 22px; padding: 46px 48px; margin-bottom: 40px; color: #fff;
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(520px 260px at 85% -20%, #7dffb422 0%, transparent 60%),
+                radial-gradient(420px 240px at -10% 120%, #00000033 0%, transparent 60%);
+  }
+  .heroRozet { display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #9fe8bd; border: 1px solid #9fe8bd44; background: #ffffff12; padding: 6px 14px; border-radius: 999px; }
+  .heroRozet .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: nabiz 1.8s infinite; }
+  .hero h1 { font-size: clamp(27px, 4.4vw, 42px); line-height: 1.13; font-weight: 800; margin: 16px 0 12px; text-wrap: balance; }
+  .hero p { font-size: 15.5px; color: #cfe9da; line-height: 1.7; max-width: 480px; }
+  .heroBtnlar { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+  .btnHayalet { display: inline-block; text-decoration: none; border: 1px solid #ffffff55; color: #fff; border-radius: 10px; padding: 11px 22px; font-weight: 600; font-size: 14.5px; transition: background .12s; }
+  .btnHayalet:hover { background: #ffffff1a; }
+  .heroArt { width: 100%; max-width: 330px; justify-self: center; position: relative; z-index: 1; }
+
+  /* bölümler */
+  .bolum { margin-bottom: 42px; scroll-margin-top: 86px; }
+  .bolumUst { display: flex; align-items: center; gap: 13px; margin-bottom: 16px; }
+  .bolumIkon { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; background: var(--vg-acik); border: 1px solid var(--vg-cizgi); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .bolumUst h2 { font-size: 20px; }
+  .bolumUst .altB { font-size: 12.5px; color: var(--soluk); margin-top: 1px; }
+  .bolumUst .sagUc { margin-left: auto; }
+
+  /* haberler */
+  .haberListe { display: flex; flex-direction: column; gap: 10px; }
+  .haber {
+    display: flex; gap: 18px; align-items: baseline;
+    background: var(--beyaz); border: 1px solid var(--cizgi); border-left: 4px solid var(--vg-cizgi);
+    border-radius: 12px; padding: 15px 19px;
+    transition: border-color .15s, box-shadow .15s, transform .15s;
+  }
+  .haber:hover { border-left-color: var(--vg); box-shadow: 0 8px 22px #0f2b1a14; transform: translateX(3px); }
+  .haber .tarih { font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px; color: var(--soluk); white-space: nowrap; min-width: 62px; }
+  .haber .icH { min-width: 0; }
+  .haber h3 { font-size: 15px; margin-bottom: 3px; display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+  .haber h3 a { color: var(--metin); text-decoration: none; }
+  .haber h3 a:hover { color: var(--vg); text-decoration: underline; }
+  .haber h3 a::after { content: " ↗"; font-size: 12px; color: var(--vg); }
+  .haber .ozetH { font-size: 13px; color: var(--soluk); line-height: 1.6; }
+
+  /* öne çıkan lab kartı */
+  .oneCikan {
+    display: grid; grid-template-columns: 290px 1fr;
+    background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 18px; overflow: hidden;
+    box-shadow: 0 4px 16px #0f2b1a0f; transition: box-shadow .15s, border-color .15s, transform .15s;
+  }
+  .oneCikan:hover { border-color: var(--vg-cizgi); box-shadow: 0 14px 34px #0f2b1a1c; transform: translateY(-2px); }
+  .oneGorsel { background: linear-gradient(160deg, #0c3520, #17803f); display: flex; align-items: center; justify-content: center; padding: 26px; }
+  .oneGorsel svg { width: 100%; max-width: 230px; }
+  .oneIcerik { padding: 26px 30px; }
+  .oneIcerik h3 { font-size: 19px; margin-bottom: 7px; }
+  .oneIcerik p { font-size: 14px; color: var(--soluk); line-height: 1.65; margin-bottom: 14px; max-width: 560px; }
+
+  /* not kartları */
+  .notGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 16px; }
+  .notKart {
+    background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 16px; overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 0 3px 12px #0f2b1a0d; transition: box-shadow .15s, border-color .15s, transform .15s;
+  }
+  .notKart:hover { border-color: var(--vg-cizgi); box-shadow: 0 12px 30px #0f2b1a1a; transform: translateY(-2px); }
+  .notBant { height: 108px; display: block; width: 100%; }
+  .notIc { padding: 19px 22px 22px; display: flex; flex-direction: column; flex: 1; }
+  .notIc h3 { font-size: 16.5px; margin-bottom: 6px; }
+  .notIc p { font-size: 13.5px; color: var(--soluk); line-height: 1.6; margin-bottom: 13px; flex: 1; }
+
+  @media (max-width: 720px) {
+    .hero { grid-template-columns: 1fr; padding: 32px 26px; }
+    .heroArt { max-width: 260px; }
+    .oneCikan { grid-template-columns: 1fr; }
+    .oneGorsel { padding: 20px; }
+    .oneGorsel svg { max-width: 190px; }
+    .marka span span { display: none; }
+  }
 
   /* ================= LAB ÜST ARAÇ ÇUBUĞU ================= */
   .labArac { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -339,67 +416,189 @@
 
 <div class="wrap">
 
-  <!-- ==================== PLATFORM ANA SAYFA ==================== -->
+  <!-- ==================== PORTAL ANA SAYFA ==================== -->
   <section id="home">
-    <span class="rozetcik"><span class="dot"></span> Heroes Start Here</span>
-    <h1>Veeam ile Veri Dayanıklılığı Platformu</h1>
-    <p class="alt">Veriyi korumayı uygulayarak öğren. Her modül, gerçek Veeam web arayüzünün birebir simülasyonunda seni adım adım ilerletir; her tıklamanın nedenini anlatır. Kahramanlık puanla, rozetle taçlanır.</p>
-
-    <div class="bolumBaslik"><h2>Lab / Simülasyon</h2><div class="cizgi"></div></div>
-    <article class="ucKart">
-      <div class="ikon">🛡️</div>
-      <div>
-        <h3>SQL VM Ajansız Yedekleme (Agentless Backup)</h3>
-        <p>Veeam Backup &amp; Replication web konsolunda, üretimdeki SQL Server sanal makinesi için ajan kurmadan, uygulama tutarlı bir yedekleme görevi oluştur. Gerçek "New Backup Job" sihirbazının birebir simülasyonu — sonunda veri akışını canlı izle.</p>
-        <div class="etiketler">
-          <span class="etiket yesil">İnteraktif Lab</span>
-          <span class="etiket">VBR Web UI</span>
-          <span class="etiket">Puanlı</span>
-          <span class="etiket">~5 dk</span>
-          <span class="etiket" id="labSayacKart" hidden>👥 —</span>
-        </div>
-        <button class="btnP" onclick="labAc()">Lab'ı Başlat →</button>
+    <nav class="portalNav" aria-label="Ana gezinme">
+      <a class="marka" href="#home">
+        <span class="amblem">🛡️</span>
+        <span><span>Veri Dayanıklılığı</span><small>Heroes Start Here</small></span>
+      </a>
+      <div class="navLinkler">
+        <a href="#haberler">📰 Haberler</a>
+        <a href="#simulasyon">🧪 Simülasyon</a>
+        <a href="#sahadan">📝 Sahadan Notlar</a>
       </div>
-    </article>
+      <span class="surumPul surumJs">Beta 1.0</span>
+    </nav>
 
-    <div class="bolumBaslik" style="margin-top:34px"><h2>Sahadan Notlar</h2><div class="cizgi"></div></div>
-    <div class="notGrid">
-      <article class="ucKart">
-        <div class="ikon">🌳</div>
-        <div>
-          <h3>SQL Backup Karar Rehberi</h3>
-          <p>SQL Server'ı nasıl korursunuz? Fiziksel mi VM mi, yönetim Altyapı'da mı DBA'de mi? Ajansız imaj yedekleme, Veeam Agent ve SQL Plug-in'i tek karar ağacında karşılaştıran saha rehberi.</p>
+    <header class="hero">
+      <div>
+        <span class="heroRozet"><span class="dot"></span> Heroes Start Here</span>
+        <h1>Veeam ile Veri Dayanıklılığı Platformu</h1>
+        <p>Haberler, gerçek arayüzde interaktif lab simülasyonları ve sahadan notlar — veri dayanıklılığını tek portalda, uygulayarak öğren.</p>
+        <div class="heroBtnlar">
+          <button class="btnP" onclick="labAc()">🧪 Lab'ı Başlat</button>
+          <a class="btnHayalet" href="#haberler">Portala Göz At ↓</a>
+        </div>
+      </div>
+      <svg class="heroArt" viewBox="0 0 330 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="hgCam" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffffff22"/><stop offset="1" stop-color="#ffffff0d"/>
+          </linearGradient>
+        </defs>
+        <path id="hYol1" d="M 78 120 C 120 120 130 78 165 78" fill="none" stroke="#9fe8bd55" stroke-width="3" stroke-dasharray="6 7"/>
+        <path id="hYol2" d="M 78 120 C 120 120 130 162 165 162" fill="none" stroke="#9fe8bd55" stroke-width="3" stroke-dasharray="6 7"/>
+        <path id="hYol3" d="M 205 78 C 240 78 248 118 282 118" fill="none" stroke="#9fe8bd55" stroke-width="3" stroke-dasharray="6 7"/>
+        <path id="hYol4" d="M 205 162 C 240 162 248 122 282 122" fill="none" stroke="#9fe8bd55" stroke-width="3" stroke-dasharray="6 7"/>
+        <g>
+          <rect x="18" y="90" width="60" height="60" rx="14" fill="url(#hgCam)" stroke="#ffffff44"/>
+          <text x="48" y="127" text-anchor="middle" font-size="24">🗄️</text>
+          <text x="48" y="168" text-anchor="middle" font-size="9" fill="#cfe9da" font-weight="600">VERİ</text>
+        </g>
+        <g>
+          <rect x="160" y="48" width="50" height="50" rx="12" fill="url(#hgCam)" stroke="#ffffff44"/>
+          <text x="185" y="80" text-anchor="middle" font-size="20">🧪</text>
+          <text x="185" y="112" text-anchor="middle" font-size="9" fill="#cfe9da" font-weight="600">LAB</text>
+        </g>
+        <g>
+          <rect x="160" y="136" width="50" height="50" rx="12" fill="url(#hgCam)" stroke="#ffffff44"/>
+          <text x="185" y="168" text-anchor="middle" font-size="20">📝</text>
+          <text x="185" y="200" text-anchor="middle" font-size="9" fill="#cfe9da" font-weight="600">NOTLAR</text>
+        </g>
+        <g>
+          <rect x="278" y="86" width="42" height="68" rx="12" fill="#ffffff2b" stroke="#9fe8bd77"/>
+          <text x="299" y="127" text-anchor="middle" font-size="19">🦸</text>
+          <text x="299" y="170" text-anchor="middle" font-size="9" fill="#9fe8bd" font-weight="700">HERO</text>
+        </g>
+        <circle r="4" fill="#9fe8bd"><animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#hYol1"/></animateMotion></circle>
+        <circle r="4" fill="#9fe8bd"><animateMotion dur="2.6s" begin="1.3s" repeatCount="indefinite"><mpath href="#hYol2"/></animateMotion></circle>
+        <circle r="4" fill="#fff"><animateMotion dur="2.6s" begin="0.6s" repeatCount="indefinite"><mpath href="#hYol3"/></animateMotion></circle>
+        <circle r="4" fill="#fff"><animateMotion dur="2.6s" begin="1.9s" repeatCount="indefinite"><mpath href="#hYol4"/></animateMotion></circle>
+      </svg>
+    </header>
+
+    <!-- HABERLER -->
+    <section class="bolum" id="haberler">
+      <div class="bolumUst">
+        <span class="bolumIkon">📰</span>
+        <div><h2>Haberler</h2><div class="altB">Önemli duyurular ve bağlantılar</div></div>
+        <span class="etiket sagUc" title="RSS beslemesi ileride eklenecek">RSS · yakında</span>
+      </div>
+      <div class="haberListe" id="haberListe"></div>
+    </section>
+
+    <!-- SİMÜLASYON -->
+    <section class="bolum" id="simulasyon">
+      <div class="bolumUst">
+        <span class="bolumIkon">🧪</span>
+        <div><h2>Lab / Simülasyon</h2><div class="altB">Gerçek Veeam web arayüzünün birebir kopyasında, uygulayarak öğren</div></div>
+      </div>
+      <article class="oneCikan">
+        <div class="oneGorsel">
+          <svg viewBox="0 0 230 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="6" y="10" width="218" height="150" rx="12" fill="#ffffff" stroke="#ffffff55"/>
+            <rect x="6" y="10" width="218" height="26" rx="12" fill="#166b38"/>
+            <rect x="6" y="24" width="218" height="12" fill="#166b38"/>
+            <circle cx="22" cy="23" r="4" fill="#9fe8bd"/>
+            <rect x="34" y="19" width="82" height="8" rx="4" fill="#ffffff88"/>
+            <rect x="18" y="48" width="56" height="9" rx="4.5" fill="#17803f"/>
+            <rect x="18" y="66" width="46" height="8" rx="4" fill="#d9dcdb"/>
+            <rect x="18" y="82" width="50" height="8" rx="4" fill="#d9dcdb"/>
+            <rect x="18" y="98" width="42" height="8" rx="4" fill="#d9dcdb"/>
+            <line x1="86" y1="44" x2="86" y2="150" stroke="#e3e6e4" stroke-width="2"/>
+            <rect x="98" y="50" width="100" height="10" rx="5" fill="#1f2428" opacity=".8"/>
+            <rect x="98" y="70" width="112" height="9" rx="4.5" fill="#eef1f0" stroke="#d9dcdb"/>
+            <rect x="98" y="86" width="112" height="9" rx="4.5" fill="#eef1f0" stroke="#d9dcdb"/>
+            <rect x="98" y="112" width="76" height="9" rx="4.5" fill="#e7f4ec" stroke="#bfe3cd"/>
+            <rect x="98" y="112" width="46" height="9" rx="4.5" fill="#17803f"/>
+            <circle cx="188" cy="132" r="17" fill="#17803f"/>
+            <path d="M 183 124 L 197 132 L 183 140 Z" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="oneIcerik">
+          <h3>SQL VM Ajansız Yedekleme (Agentless Backup)</h3>
+          <p>Veeam Backup &amp; Replication web konsolunda, üretimdeki SQL Server sanal makinesi için ajan kurmadan, uygulama tutarlı bir yedekleme görevi oluştur. Gerçek "New Backup Job" sihirbazının birebir simülasyonu — sonunda veri akışını canlı izle.</p>
           <div class="etiketler">
-            <span class="etiket yesil">Karar Ağacı</span>
-            <span class="etiket">4 kart</span>
-            <span class="etiket" id="notSayacSql" hidden>👥 —</span>
+            <span class="etiket yesil">İnteraktif Lab</span>
+            <span class="etiket">VBR Web UI</span>
+            <span class="etiket">Puanlı</span>
+            <span class="etiket">~5 dk</span>
+            <span class="etiket" id="labSayacKart" hidden>👥 —</span>
           </div>
-          <div style="display:flex; gap:14px; align-items:center;">
-            <a class="btnP" href="notlar/sql-backup-karar-rehberi.html">Oku →</a>
-            <a class="yesilLink" style="text-decoration:none" href="notlar/sql-backup-karar-rehberi.pdf" target="_blank" rel="noopener">PDF ⇩</a>
-          </div>
+          <button class="btnP" onclick="labAc()">Lab'ı Başlat →</button>
         </div>
       </article>
-      <article class="ucKart">
-        <div class="ikon">🔐</div>
-        <div>
-          <h3>VSA ile Authentication Yöntemleri</h3>
-          <p>VSA (v13) yalnızca Kerberos ve sertifikayı native konuşur — NTLM kaldırıldı. Neden bu tercih, yanlış yapılandırma hangi hatalarla kendini gösterir ve Deployment Kit / GIP / Kerberos ile üç kurulum yolu.</p>
-          <div class="etiketler">
-            <span class="etiket yesil">VSA · v13</span>
-            <span class="etiket">6 kart</span>
-            <span class="etiket" id="notSayacVsa" hidden>👥 —</span>
+    </section>
+
+    <!-- SAHADAN NOTLAR -->
+    <section class="bolum" id="sahadan">
+      <div class="bolumUst">
+        <span class="bolumIkon">📝</span>
+        <div><h2>Sahadan Notlar</h2><div class="altB">Saha deneyiminden damıtılmış, kaydırmalı rehberler</div></div>
+      </div>
+      <div class="notGrid">
+        <article class="notKart">
+          <svg class="notBant" viewBox="0 0 340 108" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="340" height="108" fill="#e7f4ec"/>
+            <path d="M 170 22 L 170 38 M 170 38 L 96 38 L 96 54 M 170 38 L 244 38 L 244 54" stroke="#17803f" stroke-width="2.5" fill="none"/>
+            <path d="M 96 78 L 96 86 M 244 78 L 244 86" stroke="#bfe3cd" stroke-width="2.5"/>
+            <rect x="134" y="8" width="72" height="20" rx="7" fill="#17803f"/>
+            <text x="170" y="22" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">SQL Server</text>
+            <rect x="56" y="54" width="80" height="22" rx="7" fill="#ffffff" stroke="#bfe3cd"/>
+            <text x="96" y="69" text-anchor="middle" fill="#1f2428" font-size="9.5" font-weight="600">🖥 Fiziksel</text>
+            <rect x="204" y="54" width="80" height="22" rx="7" fill="#ffffff" stroke="#bfe3cd"/>
+            <text x="244" y="69" text-anchor="middle" fill="#1f2428" font-size="9.5" font-weight="600">☁️ VM</text>
+            <rect x="42" y="86" width="52" height="14" rx="5" fill="#d9efe2"/>
+            <rect x="104" y="86" width="52" height="14" rx="5" fill="#d9efe2"/>
+            <rect x="190" y="86" width="52" height="14" rx="5" fill="#d9efe2"/>
+            <rect x="252" y="86" width="52" height="14" rx="5" fill="#d9efe2"/>
+          </svg>
+          <div class="notIc">
+            <h3>🌳 SQL Backup Karar Rehberi</h3>
+            <p>Fiziksel mi VM mi, yönetim Altyapı'da mı DBA'de mi? Ajansız imaj yedekleme, Veeam Agent ve SQL Plug-in'i tek karar ağacında karşılaştıran saha rehberi.</p>
+            <div class="etiketler">
+              <span class="etiket yesil">Karar Ağacı</span>
+              <span class="etiket">4 kart</span>
+              <span class="etiket" id="notSayacSql" hidden>👥 —</span>
+            </div>
+            <div style="display:flex; gap:14px; align-items:center;">
+              <a class="btnP" href="notlar/sql-backup-karar-rehberi.html">Oku →</a>
+              <a class="yesilLink" style="text-decoration:none" href="notlar/sql-backup-karar-rehberi.pdf" target="_blank" rel="noopener">PDF ⇩</a>
+            </div>
           </div>
-          <div style="display:flex; gap:14px; align-items:center;">
-            <a class="btnP" href="notlar/vsa-authentication-yontemleri.html">Oku →</a>
-            <a class="yesilLink" style="text-decoration:none" href="notlar/vsa-authentication-yontemleri.pdf" target="_blank" rel="noopener">PDF ⇩</a>
+        </article>
+        <article class="notKart">
+          <svg class="notBant" viewBox="0 0 340 108" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="340" height="108" fill="#0c3520"/>
+            <path d="M 170 16 L 200 26 L 200 58 C 200 78 186 90 170 96 C 154 90 140 78 140 58 L 140 26 Z" fill="#17803f" stroke="#9fe8bd" stroke-width="2"/>
+            <circle cx="170" cy="50" r="9" fill="none" stroke="#fff" stroke-width="2.5"/>
+            <rect x="167.5" y="56" width="5" height="16" rx="2.5" fill="#fff"/>
+            <rect x="36" y="40" width="76" height="20" rx="10" fill="#ffffff14" stroke="#9fe8bd55"/>
+            <text x="74" y="54" text-anchor="middle" fill="#9fe8bd" font-size="10" font-weight="700">🎫 Kerberos</text>
+            <rect x="228" y="40" width="76" height="20" rx="10" fill="#ffffff14" stroke="#9fe8bd55"/>
+            <text x="266" y="54" text-anchor="middle" fill="#9fe8bd" font-size="10" font-weight="700">📜 Sertifika</text>
+            <text x="74" y="84" text-anchor="middle" fill="#5f7a6b" font-size="10" font-weight="700" text-decoration="line-through">NTLM</text>
+          </svg>
+          <div class="notIc">
+            <h3>🔐 VSA ile Authentication Yöntemleri</h3>
+            <p>VSA (v13) yalnızca Kerberos ve sertifikayı native konuşur — NTLM kaldırıldı. Neden bu tercih, hangi hatalarla anlaşılır ve üç kurulum yolu.</p>
+            <div class="etiketler">
+              <span class="etiket yesil">VSA · v13</span>
+              <span class="etiket">6 kart</span>
+              <span class="etiket" id="notSayacVsa" hidden>👥 —</span>
+            </div>
+            <div style="display:flex; gap:14px; align-items:center;">
+              <a class="btnP" href="notlar/vsa-authentication-yontemleri.html">Oku →</a>
+              <a class="yesilLink" style="text-decoration:none" href="notlar/vsa-authentication-yontemleri.pdf" target="_blank" rel="noopener">PDF ⇩</a>
+            </div>
           </div>
-        </div>
-      </article>
-    </div>
+        </article>
+      </div>
+    </section>
 
     <footer class="altBilgi">
-      <span class="surumPul" id="surumPul">Beta 1.0</span>
+      <span class="surumPul surumJs">Beta 1.0</span>
       <span>Veeam ile Veri Dayanıklılığı Platformu</span>
       <span id="sayac" hidden>· 👥 <b id="sayacDeger">—</b> ziyaret</span>
     </footer>
@@ -664,7 +863,56 @@
 
 /* ==================== SÜRÜM + ZİYARET SAYACI ==================== */
 const SURUM = "Beta 1.0";
-document.getElementById("surumPul").textContent = SURUM;
+document.querySelectorAll(".surumJs").forEach(e => e.textContent = SURUM);
+
+/* ==================== HABERLER ====================
+   Yeni haber eklemek için bu listeye satır ekle; en yeni en üstte görünür. */
+const haberler = [
+  {
+    tarih: "2025-10", etiket: "Sürüm",
+    baslik: "Veeam Data Platform v13 ve Veeam Software Appliance",
+    ozet: "Linux tabanlı, önceden sıkılaştırılmış appliance (VSA) ve yeni web konsolu ile v13 yayında — bu portaldaki lab da aynı arayüzü simüle ediyor.",
+    url: "https://www.veeam.com/whats-new"
+  },
+  {
+    tarih: "2025-06", etiket: "Rapor",
+    baslik: "2025 Fidye Yazılımı Trendleri Raporu",
+    ozet: "Saldırıya uğrayan kurumların verilerinden çıkarılan dersler: fidye ödemek veriyi geri getirmiyor, değişmez yedek hayat kurtarıyor.",
+    url: "https://go.veeam.com/ransomware-trends"
+  },
+  {
+    tarih: "Sürekli", etiket: "Doküman",
+    baslik: "VBR v13 Kullanım Kılavuzu (Web UI)",
+    ozet: "Bu portaldaki lab'ların birebir referansı: New Backup Job sihirbazı ve tüm web konsolu adımları resmi kılavuzda.",
+    url: "https://helpcenter.veeam.com/docs/vbr/userguide/overview.html?ver=13"
+  },
+  {
+    tarih: "Sürekli", etiket: "Topluluk",
+    baslik: "Veeam Community Hub",
+    ozet: "Ürün ekipleri ve sahadaki uzmanlarla aynı masada: soru sor, en iyi pratikleri ve yol haritası ipuçlarını takip et.",
+    url: "https://community.veeam.com/"
+  },
+];
+document.getElementById("haberListe").innerHTML = haberler.map(h => `
+  <article class="haber">
+    <span class="tarih">${h.tarih}</span>
+    <div class="icH">
+      <h3><a href="${h.url}" target="_blank" rel="noopener">${h.baslik}</a><span class="etiket yesil">${h.etiket}</span></h3>
+      <div class="ozetH">${h.ozet}</div>
+    </div>
+  </article>`).join("");
+
+/* navigasyonda aktif bölüm vurgusu */
+(() => {
+  const linkler = [...document.querySelectorAll(".navLinkler a")];
+  const izleyici = new IntersectionObserver(girisler => {
+    girisler.forEach(g => {
+      if (!g.isIntersecting) return;
+      linkler.forEach(l => l.classList.toggle("aktifNav", l.getAttribute("href") === "#" + g.target.id));
+    });
+  }, { rootMargin: "-30% 0px -55% 0px" });
+  ["haberler", "simulasyon", "sahadan"].forEach(id => izleyici.observe(document.getElementById(id)));
+})();
 (async function sayacYukle() {
   /* Sayaç verisi Abacus servisinde tutulur: site güncellemeleri sayacı sıfırlamaz.
      Aynı tarayıcı aynı gün içinde tekrar sayılmaz (localStorage). */
