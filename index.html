@@ -72,6 +72,9 @@
     padding: 26px 28px; max-width: 660px; display: flex; gap: 22px; align-items: flex-start;
     box-shadow: 0 2px 10px #0f2b1a0d; transition: box-shadow .15s, border-color .15s;
   }
+  .notGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; max-width: 900px; }
+  .notGrid .ucKart { max-width: none; }
+  a.btnP { text-decoration: none; }
   .ucKart:hover { border-color: var(--vg-cizgi); box-shadow: 0 8px 24px #0f2b1a14; }
   .ucKart .ikon {
     width: 58px; height: 58px; border-radius: 13px; flex-shrink: 0;
@@ -342,7 +345,7 @@
     <h1>Veeam ile Veri Dayanıklılığı Platformu</h1>
     <p class="alt">Veriyi korumayı uygulayarak öğren. Her modül, gerçek Veeam web arayüzünün birebir simülasyonunda seni adım adım ilerletir; her tıklamanın nedenini anlatır. Kahramanlık puanla, rozetle taçlanır.</p>
 
-    <div class="bolumBaslik"><h2>Use Case</h2><div class="cizgi"></div></div>
+    <div class="bolumBaslik"><h2>Lab / Simülasyon</h2><div class="cizgi"></div></div>
     <article class="ucKart">
       <div class="ikon">🛡️</div>
       <div>
@@ -358,6 +361,34 @@
         <button class="btnP" onclick="labAc()">Lab'ı Başlat →</button>
       </div>
     </article>
+
+    <div class="bolumBaslik" style="margin-top:34px"><h2>Sahadan Notlar</h2><div class="cizgi"></div></div>
+    <div class="notGrid">
+      <article class="ucKart">
+        <div class="ikon">🌳</div>
+        <div>
+          <h3>SQL Backup Karar Rehberi</h3>
+          <p>SQL Server'ı nasıl korursunuz? Fiziksel mi VM mi, yönetim Altyapı'da mı DBA'de mi? Ajansız imaj yedekleme, Veeam Agent ve SQL Plug-in'i tek karar ağacında karşılaştıran saha rehberi.</p>
+          <div class="etiketler">
+            <span class="etiket yesil">Karar Ağacı</span>
+            <span class="etiket">PDF · 4 sayfa</span>
+          </div>
+          <a class="btnP" href="notlar/sql-backup-karar-rehberi.pdf" target="_blank" rel="noopener">Aç →</a>
+        </div>
+      </article>
+      <article class="ucKart">
+        <div class="ikon">🔐</div>
+        <div>
+          <h3>VSA ile Authentication Yöntemleri</h3>
+          <p>VSA (v13) yalnızca Kerberos ve sertifikayı native konuşur — NTLM kaldırıldı. Neden bu tercih, yanlış yapılandırma hangi hatalarla kendini gösterir ve Deployment Kit / GIP / Kerberos ile üç kurulum yolu.</p>
+          <div class="etiketler">
+            <span class="etiket yesil">VSA · v13</span>
+            <span class="etiket">PDF · 6 sayfa</span>
+          </div>
+          <a class="btnP" href="notlar/vsa-authentication-yontemleri.pdf" target="_blank" rel="noopener">Aç →</a>
+        </div>
+      </article>
+    </div>
 
     <footer class="altBilgi">
       <span class="surumPul" id="surumPul">Beta 1.0</span>

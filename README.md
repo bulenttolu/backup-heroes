@@ -2,14 +2,23 @@
 
 İş ortakları ve müşteriler için **oyunlaştırılmış Veeam eğitim platformu**. Her modül, gerçek Veeam Backup & Replication web arayüzünün birebir HTML simülasyonunda ("lab") adım adım ilerletir; her tıklamanın **nedenini** anlatır, doğru seçimleri puanlar ve süreci animasyonlarla görselleştirir.
 
-## Modüller
+## İçerik
 
-| # | Use Case | Durum |
-|---|----------|-------|
+### Lab / Simülasyon
+
+| # | Lab | Durum |
+|---|-----|-------|
 | 1 | SQL VM Ajansız Yedekleme (Agentless Backup) — New Backup Job sihirbazı + veri akışı animasyonu | ✅ Yayında |
 | 2 | Kurtarma: O Veritabanını Geri Getir | 🔜 Yakında |
 | 3 | 3-2-1-1-0 Kuralı ve Kopya Görevleri | 🔜 Yakında |
 | 4 | Fidye Yazılımına Karşı Değişmez Yedek | 🔜 Yakında |
+
+### Sahadan Notlar
+
+| İçerik | Biçim |
+|--------|-------|
+| [SQL Backup Karar Rehberi](notlar/sql-backup-karar-rehberi.pdf) — Agent / VM Backup / SQL Plug-in karar ağacı | PDF, 4 sayfa |
+| [VSA ile Authentication Yöntemleri](notlar/vsa-authentication-yontemleri.pdf) — Kerberos & sertifika, NTLM'siz dünya (v13) | PDF, 6 sayfa |
 
 ## Teknik
 
