@@ -19,6 +19,7 @@
 |--------|-------|
 | [SQL Backup Karar Rehberi](notlar/sql-backup-karar-rehberi.html) — Agent / VM Backup / SQL Plug-in karar ağacı | Karusel (4 kart) · [PDF](notlar/sql-backup-karar-rehberi.pdf) |
 | [VSA ile Authentication Yöntemleri](notlar/vsa-authentication-yontemleri.html) — Kerberos & sertifika, NTLM'siz dünya (v13) | Karusel (6 kart) · [PDF](notlar/vsa-authentication-yontemleri.pdf) |
+| [SQL Server'ınızda Nasıl Bir Restore İsterdiniz?](notlar/sql-restore-secenekleri.html) — Explorer'ın 8 yöntemi + SQL Plug-in | Karusel (5 kart) · [PDF](notlar/sql-restore-secenekleri.pdf) |
 
 ## Teknik
 
