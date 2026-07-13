@@ -643,10 +643,10 @@
             <b>Gartner MQ: 10. kez Lider</b>
             <span class="altS">Anand Eswaran'ın paylaşımı →</span>
           </a>
-          <a class="ucanKart" href="notlar/sql-restore-secenekleri.html" style="bottom:2%; left:14%; animation-delay:-4.8s">
-            <small>YENİ NOT · SQL RESTORE</small>
-            <b>Nasıl Bir Restore İsterdiniz?</b>
-            <span class="altS">8 yöntem, tek karşılaştırma →</span>
+          <a class="ucanKart" href="notlar/postgresql-yedekleme.html" style="bottom:2%; left:14%; animation-delay:-4.8s">
+            <small>YENİ NOT · POSTGRESQL</small>
+            <b>PostgreSQL'i Nasıl Yedekliyorsunuz?</b>
+            <span class="altS">VM mi bare-metal mi? →</span>
           </a>
         </div>
       </div>
@@ -759,6 +759,21 @@
             <div class="notAksiyon">
               <a class="btnP" href="notlar/sql-restore-secenekleri.html">Oku →</a>
               <a class="pdfL" href="notlar/sql-restore-secenekleri.pdf" target="_blank" rel="noopener">PDF ⇩</a>
+            </div>
+          </div>
+        </article>
+        <article class="notKartX">
+          <a class="notKapak" href="notlar/postgresql-yedekleme.html">
+            <img src="gorseller/not-postgresql-kapak.png" alt="PostgreSQL Yedekleme — kapak kartı" loading="lazy">
+            <span class="labRozetX">POSTGRESQL · 5 KART</span>
+          </a>
+          <div class="notIcX">
+            <h3>PostgreSQL Ortamınızı Nasıl Yedekliyorsunuz?</h3>
+            <p>VM mi bare-metal mi? Ortama göre doğru yaklaşım, Agent discovery mantığı ve Explorer'ın 4 kurtarma yöntemi.</p>
+            <div class="notMeta"><span id="notSayacPostgresql" hidden>👥 —</span></div>
+            <div class="notAksiyon">
+              <a class="btnP" href="notlar/postgresql-yedekleme.html">Oku →</a>
+              <a class="pdfL" href="notlar/postgresql-yedekleme.pdf" target="_blank" rel="noopener">PDF ⇩</a>
             </div>
           </div>
         </article>
@@ -1228,6 +1243,7 @@ async function notSayacGoster(anahtar, elId) {
 notSayacGoster("not-sql-karar", "notSayacSql");
 notSayacGoster("not-vsa-auth", "notSayacVsa");
 notSayacGoster("not-sql-restore", "notSayacRestore");
+notSayacGoster("not-postgresql", "notSayacPostgresql");
 
 /* ==================== GEZINTI ==================== */
 function labAc() {

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PostgreSQL Yedekleme — Sahadan Notlar</title>
+<meta property="og:title" content="PostgreSQL Ortamınızı Nasıl Yedekliyorsunuz?">
+<meta property="og:description" content="Sanal makine mi, bare-metal mi? Ortama göre doğru Veeam yaklaşımı, Agent discovery mantığı ve Explorer'ın 4 kurtarma yöntemi.">
+<style>
+  :root {
+    --vg: #17803f; --vg-koyu: #12662f; --vg-acik: #e7f4ec; --vg-cizgi: #bfe3cd;
+    --sayfa: #eef1f0; --beyaz: #ffffff; --zemin2: #f5f6f6; --cizgi: #d9dcdb;
+    --metin: #1f2428; --soluk: #676e6a; --mavi: #2f80ed;
+    --amber: #b97a08; --amber-a: #fdf3df; --kirmizi: #c9303e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--sayfa); color: var(--metin);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    padding: 22px 14px 40px;
+  }
+  .mono { font-family: "Cascadia Code", Consolas, monospace; }
+  a { color: var(--vg); }
+  .ust { width: 100%; max-width: 760px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .geri { text-decoration: none; background: var(--beyaz); border: 1px solid var(--cizgi); color: var(--metin); border-radius: 9px; padding: 8px 15px; font-size: 13.5px; font-weight: 600; }
+  .geri:hover { border-color: var(--vg); color: var(--vg); }
+  .rozetcik { display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; letter-spacing: 1.3px; color: var(--vg); text-transform: uppercase; border: 1px solid var(--vg-cizgi); background: var(--vg-acik); padding: 5px 13px; border-radius: 999px; }
+  .ust .sag { margin-left: auto; display: flex; gap: 10px; align-items: center; font-size: 12.5px; color: var(--soluk); }
+  .ust .sag a { font-weight: 600; }
+
+  .sahne { width: 100%; max-width: 760px; position: relative; }
+  .kart {
+    background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 18px;
+    box-shadow: 0 10px 34px #0f2b1a14; padding: 38px 42px; min-height: 540px;
+    display: none; flex-direction: column;
+  }
+  .kart.aktif { display: flex; animation: gel .3s ease; }
+  @keyframes gel { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .kart.aktif { animation: none; } }
+  .kart .eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--soluk); margin-bottom: 14px; }
+  .kart h2 { font-size: clamp(21px, 3.4vw, 28px); line-height: 1.22; margin-bottom: 12px; text-wrap: balance; }
+  .kart .buyuk { font-size: clamp(28px, 4.6vw, 40px); line-height: 1.14; }
+  .kart .altYazi { font-size: 15px; color: var(--soluk); line-height: 1.7; max-width: 560px; }
+  .kart .altYazi b { color: var(--metin); }
+  .ortala { justify-content: center; text-align: center; align-items: center; }
+
+  .cipSira { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+  .cip { font-size: 13px; font-weight: 700; padding: 7px 16px; border-radius: 999px; background: var(--vg-acik); color: var(--vg); border: 1px solid var(--vg-cizgi); }
+
+  .grupBaslik { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--vg); margin: 16px 0 9px; }
+  .uclu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .ikili { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .kutu { background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 11px; padding: 12px 13px; }
+  .kutu .no { font-size: 10.5px; font-weight: 700; letter-spacing: 1px; color: var(--vg); margin-bottom: 4px; }
+  .kutu h3 { font-size: 13.5px; margin-bottom: 6px; line-height: 1.3; }
+  .kutu p, .kutu li { font-size: 11.5px; color: #3a423d; line-height: 1.55; }
+  .kutu ul { list-style: none; }
+  .kutu ul li::before { content: "• "; color: var(--vg); font-weight: 700; }
+  .dipNot { margin-top: 14px; font-size: 12px; color: var(--soluk); line-height: 1.65; border-top: 1px dashed var(--cizgi); padding-top: 10px; }
+  .dipNot b { color: var(--metin); }
+  .uyariKutu { margin-top: 12px; background: var(--amber-a); border: 1px solid #ecd9b0; border-left: 4px solid var(--amber); border-radius: 10px; padding: 10px 14px; font-size: 12px; line-height: 1.6; color: #6d4a06; }
+
+  /* karar dalı (kart 2 & 3) */
+  .dalKok { text-align: center; margin-top: 6px; }
+  .dalDugum { display: inline-block; background: var(--vg-acik); border: 1px solid var(--vg-cizgi); color: var(--vg-koyu); border-radius: 10px; padding: 9px 20px; font-size: 13.5px; font-weight: 700; }
+  .dalCizgi { width: 2px; height: 16px; background: var(--vg-cizgi); margin: 0 auto; }
+  .dalEtiket { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--soluk); background: var(--beyaz); border: 1px solid var(--cizgi); border-radius: 999px; padding: 3px 11px; margin-bottom: 8px; }
+  .kutu .mono { font-size: 11px; display: block; background: #ecf0ee; border-radius: 6px; padding: 5px 8px; margin-top: 6px; word-break: break-all; }
+
+  .etiketBulut { margin-top: 20px; font-size: 12.5px; color: #9aa39e; }
+  .ozetSatirlar { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; text-align: left; max-width: 500px; width: 100%; }
+  .ozetSatir { display: flex; gap: 12px; align-items: baseline; background: var(--zemin2); border: 1px solid var(--cizgi); border-radius: 11px; padding: 11px 15px; }
+  .ozetSatir b { font-size: 11px; letter-spacing: 1.4px; color: var(--vg); min-width: 96px; }
+  .ozetSatir span { font-size: 13px; color: #3a423d; }
+
+  /* gezinme */
+  .gezin { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+  .okBtn { cursor: pointer; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--cizgi); background: var(--beyaz); color: var(--metin); font-size: 17px; display: flex; align-items: center; justify-content: center; transition: border-color .12s, color .12s; }
+  .okBtn:hover:not(:disabled) { border-color: var(--vg); color: var(--vg); }
+  .okBtn:disabled { opacity: .35; cursor: default; }
+  .noktalar { display: flex; gap: 7px; }
+  .nokta { width: 9px; height: 9px; border-radius: 50%; background: #c8cdcb; border: none; cursor: pointer; padding: 0; }
+  .nokta.aktif { background: var(--vg); width: 22px; border-radius: 999px; }
+  .sayfaNo { font-size: 12.5px; color: var(--soluk); font-variant-numeric: tabular-nums; min-width: 40px; text-align: center; }
+
+  .altBilgi { margin-top: 20px; display: flex; gap: 14px; align-items: center; font-size: 12.5px; color: var(--soluk); flex-wrap: wrap; justify-content: center; }
+  .altBilgi b { color: var(--metin); }
+  :focus-visible { outline: 2px solid var(--mavi); outline-offset: 2px; }
+
+  @media (max-width: 640px) {
+    .kart { padding: 24px 20px; min-height: 500px; }
+    .uclu { grid-template-columns: 1fr; }
+    .ikili { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ust">
+  <a class="geri" href="../">← Platform</a>
+  <span class="rozetcik">Sahadan Notlar · PostgreSQL</span>
+  <span class="sag"><a href="postgresql-yedekleme.pdf" target="_blank" rel="noopener">PDF indir ⇩</a></span>
+</div>
+
+<div class="sahne" id="sahne">
+
+  <!-- 1: kapak -->
+  <section class="kart ortala aktif">
+    <div class="eyebrow">PostgreSQL · Yedekleme Rehberi</div>
+    <h2 class="buyuk">PostgreSQL Ortamınızı<br>Nasıl Yedekliyorsunuz?</h2>
+    <p class="altYazi" style="margin-top:10px">PostgreSQL artık <b>sanal makinelerden fiziksel sunuculara</b> kadar farklı ortamlarda çalışıyor. Ortamınıza en uygun yöntem hangisi?</p>
+    <div class="cipSira">
+      <span class="cip">🖥 Sanal Makine</span>
+      <span class="cip">🔩 Bare-metal</span>
+      <span class="cip">📜 WAL</span>
+    </div>
+    <p class="altYazi" style="margin-top:20px; font-size:13.5px">Kaydırın, birlikte netleştirelim →</p>
+  </section>
+
+  <!-- 2: ortama göre yaklaşım -->
+  <section class="kart">
+    <div class="eyebrow">Karar Noktası</div>
+    <h2>PostgreSQL Nerede Çalışıyor?</h2>
+    <p class="altYazi" style="font-size:13.5px; margin-bottom:14px">Ortama göre doğru Veeam yaklaşımı — iki yol, tek hedef.</p>
+    <div class="dalKok">
+      <span class="dalDugum">PostgreSQL Örneği</span>
+      <div class="dalCizgi"></div>
+    </div>
+    <div class="ikili">
+      <div class="kutu" style="text-align:center">
+        <span class="dalEtiket">Sanal Makine</span>
+        <h3>Veeam Backup &amp; Replication</h3>
+        <ul style="text-align:left">
+          <li>Agentless, image-level yedekleme</li>
+          <li>WAL dosyaları birlikte korunur</li>
+          <li>VM içine ajan kurulumu gerekmez</li>
+        </ul>
+      </div>
+      <div class="kutu" style="text-align:center">
+        <span class="dalEtiket">Fiziksel / Bare-metal</span>
+        <h3>Veeam Agent for Linux</h3>
+        <ul style="text-align:left">
+          <li>Image-level yedekleme</li>
+          <li>WAL dosyaları birlikte korunur</li>
+          <li>Fiziksel Linux sunucular için</li>
+        </ul>
+      </div>
+    </div>
+    <div class="dipNot"><b>Ortak nokta:</b> her iki yöntem de image-level yedekleme ile WAL dosyalarını birlikte korur — uygulama tutarlı koruma iki yolda da aynı.</div>
+  </section>
+
+  <!-- 3: discovery mantığı -->
+  <section class="kart">
+    <div class="eyebrow">Veeam Agent for Linux · Bare-metal</div>
+    <h2>PostgreSQL Instance Nasıl Bulunur?</h2>
+    <p class="altYazi" style="font-size:13.5px; margin-bottom:10px">Backup job başladığında agent'ın discovery mantığı şu soruyla başlar: <b>XML dosyası var mı?</b> <span class="mono" style="display:inline; background:#ecf0ee; padding:2px 7px; border-radius:6px; font-size:11px">/etc/veeam/VeeamPostgreSQLAgent.xml</span></p>
+    <div class="ikili">
+      <div class="kutu">
+        <span class="dalEtiket">Hayır — XML yok</span>
+        <h3>Sadece Varsayılan Dizinler Taranır</h3>
+        <ul>
+          <li><span class="mono" style="display:inline; background:none; padding:0">/etc/postgresql</span></li>
+          <li><span class="mono" style="display:inline; background:none; padding:0">/var/lib/postgresql</span></li>
+          <li><span class="mono" style="display:inline; background:none; padding:0">/var/lib/pgsql</span></li>
+        </ul>
+        <p style="margin-top:8px">Bu dizinlerin <b>dışındaki</b> bir instance bulunamaz.</p>
+      </div>
+      <div class="kutu">
+        <span class="dalEtiket">Evet — XML var</span>
+        <h3>AddConfigDirs ile Custom Path Eklenir</h3>
+        <span class="mono">&lt;config AddConfigDirs="/home/user/pgconfdir/"/&gt;</span>
+        <p style="margin-top:8px">Instance bulunur, <b>pgsqlagent</b> devam eder.</p>
+      </div>
+    </div>
+    <div class="uyariKutu"><b>Not:</b> XML dosyası oluşturulmazsa, custom path'teki instance'lar backup'a dahil edilmez.</div>
+  </section>
+
+  <!-- 4: kurtarma yöntemleri -->
+  <section class="kart">
+    <div class="eyebrow">Veeam Explorer for PostgreSQL</div>
+    <h2>Kurtarma İçin 4 Yöntem</h2>
+    <div class="ikili" style="margin-top:6px">
+      <div class="kutu">
+        <div class="no">01 · INSTANCE</div>
+        <h3>Data Restore</h3>
+        <p>Instance'ın tüm data directory ve WAL dosyalarını orijinal veya farklı bir konuma kopyalar, ardından instance'ı başlatır. Sadece instance seviyesinde çalışır.</p>
+      </div>
+      <div class="kutu">
+        <div class="no">02 · INSTANCE</div>
+        <h3>Data Publishing</h3>
+        <p>Backup'ı FUSE ile geçici olarak mount edip instance'ı doğrudan hedef sunucuya bağlar; tam kopyalama olmadan pgAdmin gibi araçlarla hızlı erişim sağlar.</p>
+      </div>
+      <div class="kutu">
+        <div class="no">03 · INSTANCE</div>
+        <h3>Instant Recovery</h3>
+        <p>Instance'ı doğrudan backup'tan anında çalıştırır, arka planda <span class="mono" style="display:inline; background:none; padding:0">pg_basebackup</span> ile hedef sunucuya senkronize eder ve senkronizasyon bitince switchover yapılır.</p>
+      </div>
+      <div class="kutu">
+        <div class="no">04 · VERİTABANI</div>
+        <h3>Data Export</h3>
+        <p>Veritabanlarını taşınabilir DUMP dosyaları olarak export eder; <span class="mono" style="display:inline; background:none; padding:0">pg_restore</span> ile farklı bir PostgreSQL sunucusuna geri yüklenebilir. Veritabanı seviyesinde çalışan tek yöntemdir.</p>
+      </div>
+    </div>
+    <div class="uyariKutu"><b>Not:</b> Point-in-time kurtarma için PostgreSQL WAL seviyesinin <b>replica</b> veya üstü olması gerekir.</div>
+  </section>
+
+  <!-- 5: kapanış -->
+  <section class="kart ortala">
+    <div class="eyebrow">⚠ Peki Sizde?</div>
+    <h2 class="buyuk">Sizin PostgreSQL Ortamınız<br>Hangi Senaryoya Uyuyor?</h2>
+    <div class="ozetSatirlar">
+      <div class="ozetSatir"><b>SANAL MAKİNE</b><span>Veeam B&amp;R ile agentless, image-level + WAL yedekleme</span></div>
+      <div class="ozetSatir"><b>BARE-METAL</b><span>Veeam Agent for Linux ile image-level + WAL yedekleme</span></div>
+      <div class="ozetSatir"><b>KURTARMA</b><span>Restore · Publishing · Instant Recovery · Export</span></div>
+    </div>
+    <p class="altYazi" style="margin-top:20px; font-size:13.5px">Doğru yöntem, ortamınıza uygun olandır — <b>tek bir yaklaşım hepsine uymaz.</b></p>
+    <p class="etiketBulut">#Veeam #PostgreSQL #DataProtection #Backup #VeeamTürkiye</p>
+  </section>
+</div>
+
+<div class="gezin">
+  <button class="okBtn" id="onceki" aria-label="Önceki kart">←</button>
+  <div class="noktalar" id="noktalar"></div>
+  <span class="sayfaNo" id="sayfaNo">1/5</span>
+  <button class="okBtn" id="sonraki" aria-label="Sonraki kart">→</button>
+</div>
+
+<div class="altBilgi">
+  <span id="okumaSayac" hidden>👥 <b id="okumaDeger">—</b> okuma</span>
+  <span>·</span>
+  <a href="postgresql-yedekleme.pdf" target="_blank" rel="noopener">PDF sürümü</a>
+  <span>·</span>
+  <a href="../">Veeam ile Veri Dayanıklılığı Bilgi Platformu</a>
+</div>
+
+<script>
+"use strict";
+/* ---- karusel ---- */
+const kartlar = [...document.querySelectorAll(".kart")];
+let aktif = Math.min(Math.max((parseInt(location.hash.slice(1), 10) || 1) - 1, 0), kartlar.length - 1);
+const noktaKap = document.getElementById("noktalar");
+kartlar.forEach((_, i) => {
+  const n = document.createElement("button");
+  n.className = "nokta"; n.setAttribute("aria-label", "Kart " + (i + 1));
+  n.onclick = () => git(i);
+  noktaKap.appendChild(n);
+});
+function git(i) {
+  aktif = Math.min(Math.max(i, 0), kartlar.length - 1);
+  kartlar.forEach((k, j) => k.classList.toggle("aktif", j === aktif));
+  noktaKap.querySelectorAll(".nokta").forEach((n, j) => n.classList.toggle("aktif", j === aktif));
+  document.getElementById("sayfaNo").textContent = (aktif + 1) + "/" + kartlar.length;
+  document.getElementById("onceki").disabled = aktif === 0;
+  document.getElementById("sonraki").disabled = aktif === kartlar.length - 1;
+  history.replaceState(null, "", "#" + (aktif + 1));
+}
+document.getElementById("onceki").onclick = () => git(aktif - 1);
+document.getElementById("sonraki").onclick = () => git(aktif + 1);
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") git(aktif - 1);
+  if (e.key === "ArrowRight") git(aktif + 1);
+});
+let dokunX = null;
+const sahne = document.getElementById("sahne");
+sahne.addEventListener("touchstart", e => { dokunX = e.touches[0].clientX; }, { passive: true });
+sahne.addEventListener("touchend", e => {
+  if (dokunX === null) return;
+  const fark = e.changedTouches[0].clientX - dokunX;
+  if (Math.abs(fark) > 45) git(aktif + (fark < 0 ? 1 : -1));
+  dokunX = null;
+}, { passive: true });
+git(aktif);
+
+/* ---- okuma sayacı (Abacus; günde 1 sayım/tarayıcı, deploy'lar sıfırlamaz) ---- */
+(async () => {
+  const bugun = new Date().toISOString().slice(0, 10);
+  const tip = localStorage.getItem("notSayacGun-postgresql") === bugun ? "get" : "hit";
+  try {
+    const y = await fetch("https://abacus.jasoncameron.dev/" + tip + "/backup-heroes-bulenttolu/not-postgresql");
+    const j = await y.json();
+    if (tip === "hit") localStorage.setItem("notSayacGun-postgresql", bugun);
+    if (typeof j.value === "number") {
+      document.getElementById("okumaDeger").textContent = j.value.toLocaleString("tr-TR");
+      document.getElementById("okumaSayac").hidden = false;
+    }
+  } catch { /* servis yoksa gizli kalır */ }
+})();
+</script>
+</body>
+</html>
